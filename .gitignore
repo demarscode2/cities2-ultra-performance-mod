@@ -1,0 +1,18 @@
+## Visual Studio / .NET build outputs
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## IDE folders
+.vs/
+.idea/
+.vscode/
+
+## Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.ps1

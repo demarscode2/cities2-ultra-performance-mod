@@ -1,0 +1,113 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>UltraPerformanceMod</AssemblyName>
+    <RootNamespace>UltraPerformanceMod</RootNamespace>
+    <Configurations>Debug;Release</Configurations>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    
+    <!-- Path to Paradox Mods publish config -->
+    <PublishConfigurationPath>Properties\PublishConfiguration.xml</PublishConfigurationPath>
+
+    <!-- Game Paths -->
+    <CSII_MANAGEDPATH Condition="'$(CSII_MANAGEDPATH)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Managed</CSII_MANAGEDPATH>
+    <DeployDir Condition="'$(DeployDir)' == ''">$(LOCALAPPDATA)\..\LocalLow\Colossal Order\Cities Skylines II\Mods\$(AssemblyName)</DeployDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Game">
+      <HintPath>$(CSII_MANAGEDPATH)\Game.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Colossal.Core">
+      <HintPath>$(CSII_MANAGEDPATH)\Colossal.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Colossal.Logging">
+      <HintPath>$(CSII_MANAGEDPATH)\Colossal.Logging.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Colossal.IO.AssetDatabase">
+      <HintPath>$(CSII_MANAGEDPATH)\Colossal.IO.AssetDatabase.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Colossal.UI">
+      <HintPath>$(CSII_MANAGEDPATH)\Colossal.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Colossal.UI.Binding">
+      <HintPath>$(CSII_MANAGEDPATH)\Colossal.UI.Binding.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Colossal.Localization">
+      <HintPath>$(CSII_MANAGEDPATH)\Colossal.Localization.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.Burst">
+      <HintPath>$(CSII_MANAGEDPATH)\Unity.Burst.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>$(CSII_MANAGEDPATH)\Unity.Collections.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.Entities">
+      <HintPath>$(CSII_MANAGEDPATH)\Unity.Entities.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>$(CSII_MANAGEDPATH)\Unity.Mathematics.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(CSII_MANAGEDPATH)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>$(CSII_MANAGEDPATH)\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Properties\PublishConfiguration.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Properties\Thumbnail.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="UI\UltraPerformanceMod.mjs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="UI\UltraPerformanceMod.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="UI\images\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Auto-deploy to Cities Skylines II Local Mods directory for immediate testing -->
+  <Target Name="DeployToCS2LocalMods" AfterTargets="Build">
+    <Message Text="[UltraPerformanceMod] Deploying to $(DeployDir)..." Importance="high" />
+    <MakeDir Directories="$(DeployDir)" />
+    <MakeDir Directories="$(DeployDir)\images" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(DeployDir)" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    <Copy SourceFiles="UI\UltraPerformanceMod.mjs" DestinationFolder="$(DeployDir)" Condition="Exists('UI\UltraPerformanceMod.mjs')" />
+    <Copy SourceFiles="UI\UltraPerformanceMod.css" DestinationFolder="$(DeployDir)" Condition="Exists('UI\UltraPerformanceMod.css')" />
+    <Copy SourceFiles="UI\PerformanceIcon.svg" DestinationFolder="$(DeployDir)" Condition="Exists('UI\PerformanceIcon.svg')" />
+    <Copy SourceFiles="UI\images\PerformanceIcon.svg" DestinationFolder="$(DeployDir)\images" Condition="Exists('UI\images\PerformanceIcon.svg')" />
+    <Copy SourceFiles="Properties\PublishConfiguration.xml" DestinationFolder="$(DeployDir)" Condition="Exists('Properties\PublishConfiguration.xml')" />
+    <Copy SourceFiles="Properties\Thumbnail.png" DestinationFolder="$(DeployDir)" Condition="Exists('Properties\Thumbnail.png')" />
+    <Copy SourceFiles="README.md" DestinationFolder="$(DeployDir)" Condition="Exists('README.md')" />
+  </Target>
+
+</Project>

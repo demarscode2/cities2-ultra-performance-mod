@@ -1,0 +1,388 @@
+/* ============================================================
+   Ultra Performance & Simulation Booster — In-Game UI Style
+   Inspired by Better Transit View and Park Manager for CS2
+   ============================================================ */
+
+/* Window Container & Root */
+.upm-window-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.upm-panel-container {
+    position: absolute;
+    top: 60rem;
+    left: 10rem;
+    width: 540rem;
+    max-height: 850rem;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(28, 40, 58, 0.97);
+    backdrop-filter: blur(14px);
+    border: 1rem solid rgba(255, 255, 255, 0.12);
+    border-radius: 7rem;
+    box-shadow: 0 6rem 28rem rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+    font-family: var(--fontFamily);
+    overflow: hidden;
+    user-select: none;
+    animation: upm-slide-in 0.16s ease-out;
+}
+
+@keyframes upm-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header */
+.upm-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10rem 14rem;
+    background: rgba(18, 28, 44, 0.95);
+    border-bottom: 1rem solid rgba(255, 255, 255, 0.1);
+}
+
+.upm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8rem;
+}
+
+.upm-lightning-icon {
+    font-size: 18rem;
+}
+
+.upm-title {
+    margin: 0;
+    font-size: 17rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.2rem;
+}
+
+.upm-preset-badge {
+    font-size: 13rem;
+    font-weight: 600;
+    padding: 2rem 8rem;
+    border-radius: 4rem;
+    background: #4287f5;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.4rem;
+}
+
+.upm-close-button {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1rem solid rgba(255, 255, 255, 0.12);
+    border-radius: 4rem;
+    color: #cccccc;
+    font-size: 16rem;
+    width: 24rem;
+    height: 24rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.upm-close-button:hover {
+    background: #e63946;
+    color: #ffffff;
+    border-color: #ff6b77;
+}
+
+/* Tab Bar */
+.upm-tab-bar {
+    display: flex;
+    border-bottom: 1rem solid rgba(255, 255, 255, 0.1);
+    background: rgba(14, 22, 34, 0.7);
+}
+
+.upm-tab-item {
+    flex: 1;
+    padding: 9rem 0;
+    cursor: pointer;
+    font-size: 14rem;
+    font-weight: 600;
+    background: transparent;
+    border: none;
+    color: #8fa3b8;
+    border-bottom: 2rem solid transparent;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.upm-tab-item:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.upm-tab-item.active {
+    color: #ffffff;
+    border-bottom: 2rem solid #4287f5;
+    background: rgba(66, 135, 245, 0.12);
+}
+
+/* Sections */
+.upm-group-section {
+    margin-bottom: 12rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1rem solid rgba(255, 255, 255, 0.06);
+    border-radius: 6rem;
+    padding: 10rem 12rem;
+}
+
+.upm-group-title {
+    font-size: 13rem;
+    font-weight: 700;
+    color: #6ba6e8;
+    text-transform: uppercase;
+    letter-spacing: 0.5rem;
+    margin-bottom: 8rem;
+}
+
+/* Grid of Actions */
+.upm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8rem;
+}
+
+.upm-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 9rem 10rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1rem solid rgba(255, 255, 255, 0.08);
+    border-radius: 6rem;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    text-align: left;
+}
+
+.upm-card:hover {
+    background: rgba(66, 135, 245, 0.25);
+    border-color: rgba(66, 135, 245, 0.6);
+    transform: translateY(-1rem);
+    box-shadow: 0 4rem 10rem rgba(0, 0, 0, 0.35);
+}
+
+.upm-card:active {
+    transform: translateY(0);
+}
+
+.upm-card-danger {
+    background: rgba(220, 50, 50, 0.12);
+    border-color: rgba(220, 50, 50, 0.25);
+}
+
+.upm-card-danger:hover {
+    background: rgba(220, 50, 50, 0.3);
+    border-color: rgba(255, 80, 80, 0.7);
+}
+
+.upm-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6rem;
+    margin-bottom: 3rem;
+    width: 100%;
+}
+
+.upm-card-icon {
+    font-size: 17rem;
+    flex-shrink: 0;
+}
+
+.upm-card-title {
+    font-size: 14rem;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.upm-card-desc {
+    font-size: 12rem;
+    color: #9bb0c4;
+    line-height: 1.25;
+}
+
+/* Preset Buttons */
+.upm-preset-buttons {
+    display: flex;
+    gap: 6rem;
+    margin-bottom: 4rem;
+}
+
+.upm-preset-btn {
+    flex: 1;
+    padding: 7rem 4rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1rem solid rgba(255, 255, 255, 0.1);
+    border-radius: 4rem;
+    color: #c0d0e0;
+    font-size: 13rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.upm-preset-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.upm-preset-btn.active {
+    background: #4287f5;
+    color: #ffffff;
+    border-color: #8bb5ff;
+    box-shadow: 0 0 10rem rgba(66, 135, 245, 0.5);
+}
+
+/* Row Toggles */
+.upm-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6rem 4rem;
+    border-bottom: 1rem solid rgba(255, 255, 255, 0.04);
+}
+
+.upm-row:last-child {
+    border-bottom: none;
+}
+
+.upm-row-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 80%;
+}
+
+.upm-row-label {
+    font-size: 14rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.upm-row-sub {
+    font-size: 12rem;
+    color: #849cb2;
+}
+
+/* Switch Component */
+.upm-switch-box {
+    width: 36rem;
+    height: 20rem;
+    border-radius: 20rem;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1rem solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.upm-switch-box.active {
+    background: #4287f5;
+    border-color: #79adff;
+}
+
+.upm-switch-handle {
+    width: 14rem;
+    height: 14rem;
+    border-radius: 50%;
+    background: #ffffff;
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    transition: all 0.2s;
+}
+
+.upm-switch-box.active .upm-switch-handle {
+    transform: translateX(16rem);
+}
+
+/* Segmented Buttons */
+.upm-segmented-bar {
+    display: flex;
+    gap: 4rem;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 3rem;
+    border-radius: 4rem;
+}
+
+.upm-seg-btn {
+    flex: 1;
+    padding: 6rem 4rem;
+    background: transparent;
+    border: none;
+    border-radius: 3rem;
+    color: #9bb0c4;
+    font-size: 13rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.upm-seg-btn:hover {
+    color: #ffffff;
+}
+
+.upm-seg-btn.active {
+    background: #4287f5;
+    color: #ffffff;
+}
+
+/* Status Bar Footer */
+.upm-footer-status {
+    padding: 9rem 14rem;
+    background: rgba(16, 25, 38, 0.98);
+    border-top: 1rem solid rgba(255, 255, 255, 0.1);
+    font-size: 14rem;
+    font-weight: 600;
+    color: #4da3ff;
+    min-height: 20rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.upm-footer-status.highlight {
+    color: #00ffaa;
+    background: rgba(12, 35, 45, 0.98);
+}
+
+/* HUD Button */
+.upm-hud-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upm-hud-btn img,
+.upm-hud-btn .icon,
+.upm-hud-btn svg {
+    width: 24rem;
+    height: 24rem;
+}
