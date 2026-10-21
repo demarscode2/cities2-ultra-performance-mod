@@ -15,7 +15,7 @@
 
     <!-- Game Paths -->
     <CSII_MANAGEDPATH Condition="'$(CSII_MANAGEDPATH)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Managed</CSII_MANAGEDPATH>
-    <DeployDir Condition="'$(DeployDir)' == ''">$(LOCALAPPDATA)\..\LocalLow\Colossal Order\Cities Skylines II\Mods\$(AssemblyName)</DeployDir>
+    <DeployDir Condition="'$(DeployDir)' == ''">$(USERPROFILE)\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\$(AssemblyName)</DeployDir>
   </PropertyGroup>
 
   <ItemGroup>
