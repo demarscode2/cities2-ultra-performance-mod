@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Publish>
-	<!-- Leave empty on initial upload. Paradox Mods will assign an ID once uploaded. -->
-	<ModId Value="" />
+	<!-- Paradox Mods ID -->
+	<ModId Value="164241" />
 	<DisplayName Value="Ultra Performance &amp; Simulation Booster (Beta)" />
 	<ShortDescription Value="Maximize FPS and eliminate simulation/pathfinding lag in cities of up to 1,000,000 citizens with customizable automations, visibility toggles, tree &amp; water control, and smart traffic deadlock breaker." />
 	<LongDescription>
