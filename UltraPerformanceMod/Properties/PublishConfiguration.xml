@@ -3,10 +3,27 @@
 	<!-- Paradox Mods ID -->
 	<ModId Value="164241" />
 	<DisplayName Value="Ultra Performance &amp; Simulation Booster (Beta)" />
-	<ShortDescription Value="Maximize FPS and eliminate simulation/pathfinding lag in cities of up to 1,000,000 citizens with customizable automations, visibility toggles, tree &amp; water control, and smart traffic deadlock breaker." />
+	<ShortDescription Value="Maximize FPS and eliminate simulation/pathfinding lag in cities of up to 1,000,000 citizens with customizable automations, granular tree &amp; water control, and smart traffic deadlock breaker." />
 	<LongDescription>
-# ⚡ Ultra Performance &amp; Simulation Booster (Beta v1.3.1)
+# ⚡ Ultra Performance &amp; Simulation Booster (Beta v1.3.2)
 The definitive, all-in-one performance and simulation booster mod for Cities: Skylines II. Engineered from the ground up on the native DOTS / ECS architecture to eliminate CPU simulation delays, reduce pathfinding overhead, and maximize FPS in megalopolises with 700,000 to 1,000,000+ citizens.
+
+---
+
+### 🌲 Granular Tree Visibility Control (New in v1.3.2)
+Now you can hide foliage by category to maximize GPU framerate while preserving your city's aesthetic:
+- **Wild Nature Trees:** Hides wild forests and nature trees across the landscape outside of lots.
+- **Building &amp; Park Trees:** Hides decorative trees attached to buildings, plazas, and city parks.
+- **Roadside &amp; Street Trees:** Hides trees planted along sidewalks, medians, and highways.
+- **Tree Wind Disable:** Disables foliage wind sway vertex shader processing.
+
+---
+
+### 🌊 Safe &amp; Smooth Water Simulation Control (Fixed in v1.3.2)
+No more fluid oscillation, tidal waves, or typhoons! The mod now safely adjusts fluid flow rates while preserving Courant-Friedrichs-Lewy (CFL) hydrodynamic equation stability:
+- **Normal:** Full vanilla simulation speed.
+- **Média (50%):** Smooth half-speed simulation saving CPU/GPU cycles without wave glitches.
+- **Parada (Paused):** Completely stops fluid computation, freezing the water surface for zero CPU usage while retaining the visible water mesh.
 
 ---
 
@@ -57,17 +74,15 @@ I am fully committed to maintaining this mod and providing ongoing support:
 	</LongDescription>
 	<Thumbnail Value="Properties/Thumbnail.png" />
 	<ForumLink Value="" />
-	<ModVersion Value="1.3.1" />
+	<ModVersion Value="1.3.2" />
 	<GameVersion Value="1.2.*" />
 	<ChangeLog>
-- Beta 1.3.1 Release
-- Added top-left in-game toolbar button (GameTopLeft) and floating panel with CS2 frosted theme.
-- Added deep prop cleanup for trailers, intermodal containers, log trailers, and delivery vans (Trailer pequeno Prop, Trailer intermodal prop, Reboque prop, etc.).
-- Fixed toolbar button icon rendering using native coui:// resource handler.
-- Increased UI typography size by 2pt for improved readability.
-- Added 14 instant quick-cleanup actions in HUD.
-- Added granular visibility controls for bicycles and motorcycles.
-- Added documentation on known behaviors (temporarily cab-only trucks, ghost bikes).
+- Beta 1.3.2 Release
+- Fixed Tree Hiding Bug: Trees now completely disappear from rendering and draw calls via native QuadTree bounds and CullingInfo batch culling.
+- Added 3 Granular Tree Categories: Wild nature trees (outside lots), Building/Park trees, and Roadside/Street trees.
+- Fixed Water Simulation Instability: Fixed typhoons, shaking water surfaces, and tidal flooding by maintaining fluid CFL stability.
+- Added Safe Water Speed Settings: Normal (Vanilla), Média (Smooth 50% throttled speed), and Parada (Simulation paused with static water surface and zero CPU overhead).
+- Updated in-game HUD panel and localization with new granular tree toggles and water simulation controls.
 	</ChangeLog>
 	<Tag Value="Code Mod" />
 </Publish>

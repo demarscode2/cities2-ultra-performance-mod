@@ -27,6 +27,14 @@
       <HintPath>$(CSII_MANAGEDPATH)\Colossal.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Colossal.Collections">
+      <HintPath>$(CSII_MANAGEDPATH)\Colossal.Collections.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Colossal.Mathematics">
+      <HintPath>$(CSII_MANAGEDPATH)\Colossal.Mathematics.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Colossal.Logging">
       <HintPath>$(CSII_MANAGEDPATH)\Colossal.Logging.dll</HintPath>
       <Private>false</Private>

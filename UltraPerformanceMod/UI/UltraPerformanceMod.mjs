@@ -3,7 +3,7 @@
  *
  * Id: UltraPerformanceMod
  * Author: Antigravity
- * Version: 1.3.1
+ * Version: 1.3.2
  * Dependencies: 
  */
 
@@ -24,6 +24,9 @@ const invisibleVehicles$ = api.bindValue(Group, "InvisibleVehicles", false);
 const invisibleBicycles$ = api.bindValue(Group, "InvisibleBicycles", false);
 const invisibleMotorcycles$ = api.bindValue(Group, "InvisibleMotorcycles", false);
 const invisibleTrees$ = api.bindValue(Group, "InvisibleTrees", false);
+const invisibleWildTrees$ = api.bindValue(Group, "InvisibleWildTrees", false);
+const invisibleBuildingTrees$ = api.bindValue(Group, "InvisibleBuildingTrees", false);
+const invisibleRoadTrees$ = api.bindValue(Group, "InvisibleRoadTrees", false);
 const disableTreeWind$ = api.bindValue(Group, "DisableTreeWind", true);
 const waterSimulation$ = api.bindValue(Group, "WaterSimulation", 1);
 const autoClearDeadlocks$ = api.bindValue(Group, "AutoClearDeadlocks", false);
@@ -174,6 +177,9 @@ const FloatingPanel = () => {
         const invisibleBicycles = api.useValue(invisibleBicycles$);
         const invisibleMotorcycles = api.useValue(invisibleMotorcycles$);
         const invisibleTrees = api.useValue(invisibleTrees$);
+        const invisibleWildTrees = api.useValue(invisibleWildTrees$);
+        const invisibleBuildingTrees = api.useValue(invisibleBuildingTrees$);
+        const invisibleRoadTrees = api.useValue(invisibleRoadTrees$);
         const disableTreeWind = api.useValue(disableTreeWind$);
         const waterSimulation = api.useValue(waterSimulation$);
         const autoClearDeadlocks = api.useValue(autoClearDeadlocks$);
@@ -420,7 +426,9 @@ const FloatingPanel = () => {
                                     { label: "Ocultar Ve\u00EDculos Gerais", sub: "Oculta carros, caminh\u00F5es e transportes", key: "InvisibleVehicles", val: invisibleVehicles },
                                     { label: "Ocultar Bicicletas", sub: "Oculta ciclistas individualmente", key: "InvisibleBicycles", val: invisibleBicycles },
                                     { label: "Ocultar Motocicletas", sub: "Oculta motociclistas individualmente", key: "InvisibleMotorcycles", val: invisibleMotorcycles },
-                                    { label: "Ocultar Todas as \u00C1rvores", sub: "Remove draw calls de folhagem no mapa inteiro", key: "InvisibleTrees", val: invisibleTrees },
+                                    { label: "Ocultar \u00C1rvores na Natureza", sub: "Oculta matas e florestas fora de constru\u00E7\u00F5es", key: "InvisibleWildTrees", val: invisibleWildTrees },
+                                    { label: "Ocultar \u00C1rvores de Pr\u00E9dios/Parques", sub: "Oculta \u00E1rvores de pra\u00E7as, parques e lotes", key: "InvisibleBuildingTrees", val: invisibleBuildingTrees },
+                                    { label: "Ocultar \u00C1rvores de Vias/Cal\u00E7adas", sub: "Oculta \u00E1rvores em canteiros e cal\u00E7adas", key: "InvisibleRoadTrees", val: invisibleRoadTrees },
                                     { label: "Desativar Vento nas \u00C1rvores", sub: "Elimina anima\u00E7\u00F5es de vento nas copas", key: "DisableTreeWind", val: disableTreeWind },
                                     { label: "Ocultar \u00CDcones de Alerta", sub: "Oculta bal\u00F5es de falta de clientes, aluguel, etc.", key: "HideNotificationIcons", val: hideNotificationIcons },
                                     { label: "Desobstru\u00E7\u00E3o Autom\u00E1tica de Tr\u00E2nsito", sub: "Despacha automaticamente carros em impasse circular", key: "AutoClearDeadlocks", val: autoClearDeadlocks }
@@ -445,14 +453,14 @@ const FloatingPanel = () => {
                             React.createElement(
                                 "div",
                                 { className: "upm-group-section" },
-                                React.createElement("div", { className: "upm-group-title" }, "Simula\u00E7\u00E3o Din\u00E2mica de \u00C1gua"),
+                                React.createElement("div", { className: "upm-group-title" }, "Velocidade da \u00C1gua (Sem Tuf\u00F5es / Inunda\u00E7\u00F5es)"),
                                 React.createElement(
                                     "div",
                                     { className: "upm-segmented-bar" },
                                     [
-                                        { id: 0, label: "Congelada" },
-                                        { id: 1, label: "Otimizada" },
-                                        { id: 2, label: "Vanilla" }
+                                        { id: 0, label: "Normal" },
+                                        { id: 1, label: "M\u00E9dia" },
+                                        { id: 2, label: "Parada" }
                                     ].map((w) =>
                                         React.createElement(
                                             "button",

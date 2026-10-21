@@ -64,8 +64,17 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetEnumValueLocaleID(AnimalHandlingMode.KeepVanilla), "Padrão (Visíveis)" },
                 { m_Setting.GetEnumValueLocaleID(AnimalHandlingMode.Invisible), "Invisíveis (Sem Custo de Render)" },
                 { m_Setting.GetEnumValueLocaleID(AnimalHandlingMode.RemoveCompletely), "Remover Completamente (Máximo Desempenho)" },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleTrees)), "Árvores Invisíveis" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleTrees)), "Oculta todas as árvores do mapa, aliviando centenas de milhares de chamadas de desenho da GPU." },
+                
+                // Árvores Granulares
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleWildTrees)), "Árvores na Natureza (Fora de Construções)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleWildTrees)), "Oculta árvores livres, matas e florestas espalhadas pelo relevo do mapa fora de lotes urbanos, liberando milhares de draw calls." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleBuildingTrees)), "Árvores em Construções e Parques" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleBuildingTrees)), "Oculta árvores pertencentes a lotes de edifícios, praças públicas e áreas de lazer." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleRoadTrees)), "Árvores em Vias e Calçadas" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleRoadTrees)), "Oculta árvores decorativas de canteiros centrais, calçadas de avenidas e rodovias." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleTrees)), "Todas as Árvores Invisíveis" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleTrees)), "Oculta todas as árvores do mapa de uma só vez para máximo ganho de FPS." },
+                
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.HideNotificationIcons)), "Ocultar Ícones de Erro / Alerta" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.HideNotificationIcons)), "Oculta todos os ícones 3D flutuantes (falta de trabalhadores, clientes, aluguel alto, etc.) limpando o horizonte da cidade e poupando renderização." },
 
@@ -106,11 +115,11 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableTreeWind)), "Zera a deformação de vértices por vento na folhagem, reduzindo trabalho de shaders de geometria." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableTreeGrowth)), "Desativar Crescimento / Envelhecimento de Árvores" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableTreeGrowth)), "Pausa o sistema de envelhecimento e decaimento das árvores decorativas, poupando processamento diário no ECS sem afetar as indústrias de silvicultura." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.WaterSimulation)), "Simulação de Fluxo de Água" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.WaterSimulation)), "Padrão (cálculo de dinâmica de fluidos total a cada quadro), Otimizado (atualização a cada 6 quadros, mantendo o visual fluido e poupando GPU/CPU), ou Desativada (malha estática sem cálculos de fluxo)." },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Vanilla), "Padrão (Total)" },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Throttled), "Otimizada (Fluida a cada 6 quadros)" },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Disabled), "Desativada (Super Leve / Estática)" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.WaterSimulation)), "Velocidade da Simulação de Água" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.WaterSimulation)), "Ajusta com segurança a velocidade do fluxo de água sem risco de oscilações ou tufões: Normal (velocidade padrão do jogo), Média (50% de velocidade com transição suave), ou Parada (simulação pausada com água visível e zero uso de CPU)." },
+                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Normal), "Normal (Padrão Vanilla)" },
+                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Media), "Média (50% Suave / Estável)" },
+                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Parada), "Parada (Pausada / Leve)" },
 
                 // Botões de Ações Rápidas
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CleanGarbageButton)), "Esvaziar Todo o Lixo da Cidade" },

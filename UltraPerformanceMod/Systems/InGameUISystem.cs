@@ -26,6 +26,9 @@ namespace UltraPerformanceMod.Systems
         private ValueBinding<bool> m_InvisibleBicyclesBinding = default!;
         private ValueBinding<bool> m_InvisibleMotorcyclesBinding = default!;
         private ValueBinding<bool> m_InvisibleTreesBinding = default!;
+        private ValueBinding<bool> m_InvisibleWildTreesBinding = default!;
+        private ValueBinding<bool> m_InvisibleBuildingTreesBinding = default!;
+        private ValueBinding<bool> m_InvisibleRoadTreesBinding = default!;
         private ValueBinding<bool> m_DisableTreeWindBinding = default!;
         private ValueBinding<int> m_WaterSimulationBinding = default!;
         private ValueBinding<bool> m_AutoClearDeadlocksBinding = default!;
@@ -60,8 +63,11 @@ namespace UltraPerformanceMod.Systems
             AddBinding(m_InvisibleBicyclesBinding = new ValueBinding<bool>(Group, "InvisibleBicycles", s?.InvisibleBicycles ?? false));
             AddBinding(m_InvisibleMotorcyclesBinding = new ValueBinding<bool>(Group, "InvisibleMotorcycles", s?.InvisibleMotorcycles ?? false));
             AddBinding(m_InvisibleTreesBinding = new ValueBinding<bool>(Group, "InvisibleTrees", s?.InvisibleTrees ?? false));
+            AddBinding(m_InvisibleWildTreesBinding = new ValueBinding<bool>(Group, "InvisibleWildTrees", s?.InvisibleWildTrees ?? false));
+            AddBinding(m_InvisibleBuildingTreesBinding = new ValueBinding<bool>(Group, "InvisibleBuildingTrees", s?.InvisibleBuildingTrees ?? false));
+            AddBinding(m_InvisibleRoadTreesBinding = new ValueBinding<bool>(Group, "InvisibleRoadTrees", s?.InvisibleRoadTrees ?? false));
             AddBinding(m_DisableTreeWindBinding = new ValueBinding<bool>(Group, "DisableTreeWind", s?.DisableTreeWind ?? true));
-            AddBinding(m_WaterSimulationBinding = new ValueBinding<int>(Group, "WaterSimulation", (int)(s?.WaterSimulation ?? WaterSimulationMode.Throttled)));
+            AddBinding(m_WaterSimulationBinding = new ValueBinding<int>(Group, "WaterSimulation", (int)(s?.WaterSimulation ?? WaterSimulationMode.Media)));
             AddBinding(m_AutoClearDeadlocksBinding = new ValueBinding<bool>(Group, "AutoClearDeadlocks", s?.AutoClearDeadlocks ?? false));
             AddBinding(m_HideNotificationIconsBinding = new ValueBinding<bool>(Group, "HideNotificationIcons", s?.HideNotificationIcons ?? false));
 
@@ -149,11 +155,11 @@ namespace UltraPerformanceMod.Systems
             UpdateAllBindings();
             string modeName = s.WaterSimulation switch
             {
-                WaterSimulationMode.Disabled => "Congelada/Desativada",
-                WaterSimulationMode.Throttled => "Otimizada",
-                _ => "Padr\u00E3o Vanilla"
+                WaterSimulationMode.Parada => "Parada (Congelada)",
+                WaterSimulationMode.Media => "M\u00E9dia (Otimizada 50%)",
+                _ => "Normal (Padr\u00E3o Vanilla)"
             };
-            SetStatusMessage($"[OK] Simula\u00E7\u00E3o de \u00E1gua: {modeName}");
+            SetStatusMessage($"[OK] Velocidade da \u00E1gua ajustada: {modeName}");
         }
 
         public void ToggleSetting(string key, bool value)
@@ -168,6 +174,9 @@ namespace UltraPerformanceMod.Systems
                 case "InvisibleBicycles": s.InvisibleBicycles = value; break;
                 case "InvisibleMotorcycles": s.InvisibleMotorcycles = value; break;
                 case "InvisibleTrees": s.InvisibleTrees = value; break;
+                case "InvisibleWildTrees": s.InvisibleWildTrees = value; break;
+                case "InvisibleBuildingTrees": s.InvisibleBuildingTrees = value; break;
+                case "InvisibleRoadTrees": s.InvisibleRoadTrees = value; break;
                 case "DisableTreeWind": s.DisableTreeWind = value; break;
                 case "AutoClearDeadlocks": s.AutoClearDeadlocks = value; break;
                 case "HideNotificationIcons": s.HideNotificationIcons = value; break;
@@ -288,6 +297,9 @@ namespace UltraPerformanceMod.Systems
             m_InvisibleBicyclesBinding.Update(s.InvisibleBicycles);
             m_InvisibleMotorcyclesBinding.Update(s.InvisibleMotorcycles);
             m_InvisibleTreesBinding.Update(s.InvisibleTrees);
+            m_InvisibleWildTreesBinding.Update(s.InvisibleWildTrees);
+            m_InvisibleBuildingTreesBinding.Update(s.InvisibleBuildingTrees);
+            m_InvisibleRoadTreesBinding.Update(s.InvisibleRoadTrees);
             m_DisableTreeWindBinding.Update(s.DisableTreeWind);
             m_WaterSimulationBinding.Update((int)s.WaterSimulation);
             m_AutoClearDeadlocksBinding.Update(s.AutoClearDeadlocks);
