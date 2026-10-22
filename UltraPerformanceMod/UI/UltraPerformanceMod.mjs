@@ -27,6 +27,7 @@ const disableTreeWind$ = api.bindValue(Group, "DisableTreeWind", true);
 const disableTreeGrowth$ = api.bindValue(Group, "DisableTreeGrowth", true);
 const disableHoverOverlay$ = api.bindValue(Group, "DisableHoverOverlay", false);
 const optimizeShadows$ = api.bindValue(Group, "OptimizeShadows", true);
+const treeLodMode$ = api.bindValue(Group, "TreeLodMode", 0);
 const autoEvacuateHomeless$ = api.bindValue(Group, "AutoEvacuateHomeless", true);
 const autoClearDeadlocks$ = api.bindValue(Group, "AutoClearDeadlocks", false);
 const hideNotificationIcons$ = api.bindValue(Group, "HideNotificationIcons", false);
@@ -200,6 +201,7 @@ const FloatingPanel = () => {
         const disableTreeGrowth = api.useValue(disableTreeGrowth$);
         const disableHoverOverlay = api.useValue(disableHoverOverlay$);
         const optimizeShadows = api.useValue(optimizeShadows$);
+        const treeLodMode = api.useValue(treeLodMode$);
         const autoEvacuateHomeless = api.useValue(autoEvacuateHomeless$);
         const autoClearDeadlocks = api.useValue(autoClearDeadlocks$);
         const hideNotificationIcons = api.useValue(hideNotificationIcons$);
@@ -518,6 +520,59 @@ const FloatingPanel = () => {
                                             checked: item.val,
                                             onChange: (val) => api.trigger(Group, "ToggleSetting", item.key, val)
                                         })
+                                    )
+                                )
+                            ),
+                            // Section: Experimental Foliage & Mesh LOD Control
+                            React.createElement(
+                                "div",
+                                { className: "upm-group-section upm-experimental-section" },
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-experimental-header" },
+                                    React.createElement("span", { className: "upm-badge-experimental" }, "EXPERIMENTAL"),
+                                    React.createElement("div", { className: "upm-group-title", style: { margin: 0 } }, "Controle de LOD & \u00C1rvores Distantes")
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-experimental-desc" },
+                                    "Fun\u00E7\u00E3o Experimental: Controla a dist\u00E2ncia de renderiza\u00E7\u00E3o de folhagem e \u00E1rvores. Em n\u00EDveis agressivos, \u00E1rvores distantes deixam de ser processadas e surgem suavemente conforme a c\u00E2mera se aproxima, gerando grande al\u00EDvio de draw calls e v\u00E9rtices na GPU."
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-lod-buttons" },
+                                    [
+                                        { id: 0, label: "Padr\u00E3o", sub: "100% Nativo" },
+                                        { id: 1, label: "Moderado", sub: "~65% Horizonte" },
+                                        { id: 2, label: "Agressivo", sub: "~40% C\u00E2mera" },
+                                        { id: 3, label: "Extremo", sub: "~20% Culling M\u00E1x" }
+                                    ].map((m) =>
+                                        React.createElement(
+                                            "button",
+                                            {
+                                                key: m.id,
+                                                className: "upm-lod-btn" + (treeLodMode === m.id ? " active" : ""),
+                                                onClick: () => api.trigger(Group, "SetTreeLodMode", m.id)
+                                            },
+                                            React.createElement("span", { className: "upm-lod-btn-title" }, m.label),
+                                            React.createElement("span", { className: "upm-lod-btn-sub" }, m.sub)
+                                        )
+                                    )
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-lod-status" },
+                                    React.createElement("span", { className: "upm-lod-status-label" }, "Efeito Atual: "),
+                                    React.createElement(
+                                        "span",
+                                        { className: "upm-lod-status-val" },
+                                        treeLodMode === 0
+                                            ? "Padr\u00E3o nativo (todas as \u00E1rvores renderizadas normalmente no horizonte)"
+                                            : treeLodMode === 1
+                                            ? "Moderado (florestas no horizonte reduzidas - ganho suave de FPS)"
+                                            : treeLodMode === 2
+                                            ? "Agressivo (\u00E1rvores s\u00F3 aparecem perto da c\u00E2mera - salto brutal de FPS)"
+                                            : "Extremo (culling m\u00E1ximo - renderiza apenas folhagem colada \u00E0 c\u00E2mera)"
                                     )
                                 )
                             ),

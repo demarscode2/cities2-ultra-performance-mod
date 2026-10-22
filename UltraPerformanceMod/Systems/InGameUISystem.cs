@@ -30,6 +30,7 @@ namespace UltraPerformanceMod.Systems
         private ValueBinding<bool> m_DisableTreeGrowthBinding = default!;
         private ValueBinding<bool> m_DisableHoverOverlayBinding = default!;
         private ValueBinding<bool> m_OptimizeShadowsBinding = default!;
+        private ValueBinding<int> m_TreeLodModeBinding = default!;
         private ValueBinding<bool> m_AutoEvacuateHomelessBinding = default!;
         private ValueBinding<bool> m_AutoClearDeadlocksBinding = default!;
         private ValueBinding<bool> m_HideNotificationIconsBinding = default!;
@@ -80,6 +81,7 @@ namespace UltraPerformanceMod.Systems
             AddBinding(m_DisableTreeGrowthBinding = new ValueBinding<bool>(Group, "DisableTreeGrowth", s?.DisableTreeGrowth ?? true));
             AddBinding(m_DisableHoverOverlayBinding = new ValueBinding<bool>(Group, "DisableHoverOverlay", s?.DisableHoverOverlay ?? false));
             AddBinding(m_OptimizeShadowsBinding = new ValueBinding<bool>(Group, "OptimizeShadows", s?.OptimizeShadows ?? true));
+            AddBinding(m_TreeLodModeBinding = new ValueBinding<int>(Group, "TreeLodMode", (int)(s?.TreeLodMode ?? TreeLodMode.Vanilla)));
             AddBinding(m_AutoEvacuateHomelessBinding = new ValueBinding<bool>(Group, "AutoEvacuateHomeless", s?.AutoEvacuateHomeless ?? true));
             AddBinding(m_AutoClearDeadlocksBinding = new ValueBinding<bool>(Group, "AutoClearDeadlocks", s?.AutoClearDeadlocks ?? false));
             AddBinding(m_HideNotificationIconsBinding = new ValueBinding<bool>(Group, "HideNotificationIcons", s?.HideNotificationIcons ?? false));
@@ -116,6 +118,7 @@ namespace UltraPerformanceMod.Systems
             AddBinding(new TriggerBinding<string, bool>(Group, "ToggleSetting", ToggleSetting));
             AddBinding(new TriggerBinding(Group, "ClearSmartCache", ClearSmartCacheAction));
             AddBinding(new TriggerBinding<int>(Group, "SetAutoTunerProfile", SetAutoTunerProfileAction));
+            AddBinding(new TriggerBinding<int>(Group, "SetTreeLodMode", SetTreeLodModeAction));
 
             if (s != null)
             {
@@ -233,6 +236,28 @@ namespace UltraPerformanceMod.Systems
             m_DiagProfileBinding.Update(profileIdx);
             SetStatusMessage($"[OK] Perfil do UltraCore ajustado: {profile}");
             UpdateDiagnosticsBindings();
+        }
+
+        private void SetTreeLodModeAction(int modeIdx)
+        {
+            var s = Mod.Settings;
+            if (s == null) return;
+
+            var mode = (TreeLodMode)modeIdx;
+            s.TreeLodMode = mode;
+            TreeLodOptimizerSystem.Instance?.ApplyLodMode(mode);
+            s.ApplyAndSave();
+
+            m_TreeLodModeBinding.Update(modeIdx);
+            string desc = mode switch
+            {
+                TreeLodMode.Vanilla => "Padrão Nativo (100% LOD)",
+                TreeLodMode.Moderate => "Moderado (~65% LOD - Árvores no horizonte reduzidas)",
+                TreeLodMode.Aggressive => "Agressivo (~40% LOD - Árvores surgem ao aproximar a câmera)",
+                TreeLodMode.Extreme => "Extremo (~20% LOD - Culling Máximo de Folhagem)",
+                _ => "Padrão"
+            };
+            SetStatusMessage($"[OK] LOD de Árvores [EXPERIMENTAL]: {desc}");
         }
 
         private void UpdateDiagnosticsBindings()
@@ -374,6 +399,7 @@ namespace UltraPerformanceMod.Systems
             m_DisableTreeGrowthBinding.Update(s.DisableTreeGrowth);
             m_DisableHoverOverlayBinding.Update(s.DisableHoverOverlay);
             m_OptimizeShadowsBinding.Update(s.OptimizeShadows);
+            m_TreeLodModeBinding.Update((int)s.TreeLodMode);
             m_AutoEvacuateHomelessBinding.Update(s.AutoEvacuateHomeless);
             m_AutoClearDeadlocksBinding.Update(s.AutoClearDeadlocks);
             m_HideNotificationIconsBinding.Update(s.HideNotificationIcons);

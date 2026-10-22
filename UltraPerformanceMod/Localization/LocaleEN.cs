@@ -121,6 +121,12 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableTreeGrowth)), "Freezes decorative tree aging calculations, saving daily ECS cycles while keeping forestry extractors functional." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.OptimizeShadows)), "Optimize Shadows & HDRP Distance" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.OptimizeShadows)), "Limits distant shadow calculation to 450m and culls micro-props from shadow passes, boosting GPU framerate in huge cities." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.TreeLodMode)), "LOD & Distant Trees Control [EXPERIMENTAL]" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.TreeLodMode)), "Experimental Feature: Controls distant rendering distance for meshes and foliage. Higher levels cull distant trees from the horizon, rendering them smoothly only as the camera gets closer." },
+                { m_Setting.GetEnumValueLocaleID(TreeLodMode.Vanilla), "Vanilla (100% Game Default)" },
+                { m_Setting.GetEnumValueLocaleID(TreeLodMode.Moderate), "Moderate (~65% LOD - Reduced Horizon)" },
+                { m_Setting.GetEnumValueLocaleID(TreeLodMode.Aggressive), "Aggressive (~40% LOD - Camera Proximity Only)" },
+                { m_Setting.GetEnumValueLocaleID(TreeLodMode.Extreme), "Extreme (~20% LOD - Maximum Foliage Culling)" },
 
                 // Quick Action Buttons
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CleanGarbageButton)), "Clear All City Garbage" },

@@ -79,6 +79,7 @@ namespace UltraPerformanceMod
         private bool m_DisableTreeWind = true;
         private bool m_DisableTreeGrowth = true;
         private bool m_OptimizeShadows = true;
+        private TreeLodMode m_TreeLodMode = TreeLodMode.Vanilla;
 
         public event Action? OnSettingChanged;
 
@@ -536,6 +537,22 @@ namespace UltraPerformanceMod
             }
         }
 
+        [SettingsUISection(TabGraphics, GroupGraphics)]
+        public TreeLodMode TreeLodMode
+        {
+            get => m_TreeLodMode;
+            set
+            {
+                if (m_TreeLodMode != value)
+                {
+                    m_TreeLodMode = value;
+                    m_Preset = PerformancePreset.Custom;
+                    TreeLodOptimizerSystem.Instance?.ApplyLodMode(value);
+                    ApplyAndSave();
+                }
+            }
+        }
+
         // --- ACTIONS TAB (MANUAL BUTTONS) ---
         [SettingsUIButton]
         [SettingsUISection(TabActions, GroupActions)]
@@ -804,6 +821,7 @@ namespace UltraPerformanceMod
             VisualEffectsOptimizerSystem.ApplyEffectsOptimization(m_DisableHeavyEffects);
             ShadowOptimizerSystem.ApplyShadowOptimization(m_OptimizeShadows);
             HoverOverlayOptimizerSystem.Instance?.SetOutlinesPassEnabled(!m_DisableHoverOverlay);
+            TreeLodOptimizerSystem.Instance?.ApplyLodMode(m_TreeLodMode);
         }
 
         public override void SetDefaults()

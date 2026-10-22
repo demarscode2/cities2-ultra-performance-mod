@@ -121,6 +121,12 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableTreeGrowth)), "Pausa o sistema de envelhecimento e decaimento das árvores decorativas, poupando processamento diário no ECS sem afetar as indústrias de silvicultura." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.OptimizeShadows)), "Otimizar Sombras & Alcance HDRP" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.OptimizeShadows)), "Limita sombras distantes a 450 metros e filtra micro-props em sombras, dobrando a fluidez da GPU em megalópoles sem perda visual." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.TreeLodMode)), "Controle de LOD & Árvores Distantes [EXPERIMENTAL]" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.TreeLodMode)), "Função Experimental: Controla a distância de renderização de malhas e árvores. Níveis mais agressivos ocultam árvores distantes da câmera, renderizando-as apenas quando você aproxima o zoom." },
+                { m_Setting.GetEnumValueLocaleID(TreeLodMode.Vanilla), "Padrão (100% Nativo)" },
+                { m_Setting.GetEnumValueLocaleID(TreeLodMode.Moderate), "Moderado (~65% LOD - Horizonte Reduzido)" },
+                { m_Setting.GetEnumValueLocaleID(TreeLodMode.Aggressive), "Agressivo (~40% LOD - Árvores Só Perto da Câmera)" },
+                { m_Setting.GetEnumValueLocaleID(TreeLodMode.Extreme), "Extremo (~20% LOD - Culling Máximo de Folhagem)" },
 
                 // Botões de Ações Rápidas
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CleanGarbageButton)), "Esvaziar Todo o Lixo da Cidade" },
