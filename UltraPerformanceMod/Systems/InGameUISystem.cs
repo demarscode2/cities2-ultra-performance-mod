@@ -2,7 +2,7 @@ using System;
 using Colossal.Logging;
 using Colossal.UI.Binding;
 using Game.UI;
-using UltraPerformanceMod;
+using UltraPerformanceMod.Core;
 
 namespace UltraPerformanceMod.Systems
 {
@@ -15,8 +15,9 @@ namespace UltraPerformanceMod.Systems
 
         private bool m_IsPanelOpen = false;
         private string m_StatusMessage = "";
+        private uint m_UiFrameCounter = 0;
 
-        // Value bindings
+        // Base Value bindings
         private ValueBinding<bool> m_IsPanelOpenBinding = default!;
         private ValueBinding<string> m_StatusMessageBinding = default!;
         private ValueBinding<int> m_PresetBinding = default!;
@@ -45,12 +46,26 @@ namespace UltraPerformanceMod.Systems
         private ValueBinding<bool> m_DisableDummyTrafficBinding = default!;
         private ValueBinding<bool> m_OptimizeParkingBinding = default!;
 
+        // UltraCore Telemetry & Diagnostics Value Bindings
+        private ValueBinding<float> m_DiagFpsBinding = default!;
+        private ValueBinding<float> m_DiagAvgFpsBinding = default!;
+        private ValueBinding<float> m_Diag1PercentLowBinding = default!;
+        private ValueBinding<float> m_DiagFrameTimeBinding = default!;
+        private ValueBinding<float> m_DiagMemoryMbBinding = default!;
+        private ValueBinding<float> m_DiagModCpuMsBinding = default!;
+        private ValueBinding<string> m_DiagLoadStateBinding = default!;
+        private ValueBinding<int> m_DiagProfileBinding = default!;
+        private ValueBinding<float> m_DiagFrameBudgetMsBinding = default!;
+        private ValueBinding<int> m_DiagCacheEntriesBinding = default!;
+        private ValueBinding<int> m_DiagZeroAllocOpsBinding = default!;
+
         protected override void OnCreate()
         {
             base.OnCreate();
             Instance = this;
 
             var s = Mod.Settings;
+            var core = UltraCoreEngine.Instance;
 
             // Register Value Bindings
             AddBinding(m_IsPanelOpenBinding = new ValueBinding<bool>(Group, "IsPanelOpen", m_IsPanelOpen));
@@ -81,18 +96,33 @@ namespace UltraPerformanceMod.Systems
             AddBinding(m_DisableDummyTrafficBinding = new ValueBinding<bool>(Group, "DisableDummyTraffic", s?.DisableDummyTraffic ?? true));
             AddBinding(m_OptimizeParkingBinding = new ValueBinding<bool>(Group, "OptimizeParking", s?.OptimizeParking ?? true));
 
+            // UltraCore Telemetry Bindings
+            AddBinding(m_DiagFpsBinding = new ValueBinding<float>(Group, "DiagFps", 0f));
+            AddBinding(m_DiagAvgFpsBinding = new ValueBinding<float>(Group, "DiagAvgFps", 0f));
+            AddBinding(m_Diag1PercentLowBinding = new ValueBinding<float>(Group, "Diag1PercentLow", 0f));
+            AddBinding(m_DiagFrameTimeBinding = new ValueBinding<float>(Group, "DiagFrameTime", 0f));
+            AddBinding(m_DiagMemoryMbBinding = new ValueBinding<float>(Group, "DiagMemoryMb", 0f));
+            AddBinding(m_DiagModCpuMsBinding = new ValueBinding<float>(Group, "DiagModCpuMs", 0f));
+            AddBinding(m_DiagLoadStateBinding = new ValueBinding<string>(Group, "DiagLoadState", "Moderado"));
+            AddBinding(m_DiagProfileBinding = new ValueBinding<int>(Group, "DiagProfile", (int)core.AutoTuner.ActiveProfile));
+            AddBinding(m_DiagFrameBudgetMsBinding = new ValueBinding<float>(Group, "DiagFrameBudgetMs", (float)core.AutoTuner.CurrentFrameBudgetMs));
+            AddBinding(m_DiagCacheEntriesBinding = new ValueBinding<int>(Group, "DiagCacheEntries", 0));
+            AddBinding(m_DiagZeroAllocOpsBinding = new ValueBinding<int>(Group, "DiagZeroAllocOps", 0));
+
             // Register Trigger Bindings
             AddBinding(new TriggerBinding(Group, "TogglePanel", TogglePanel));
             AddBinding(new TriggerBinding<string>(Group, "ExecuteQuickAction", ExecuteQuickAction));
             AddBinding(new TriggerBinding<int>(Group, "SelectPreset", SelectPreset));
             AddBinding(new TriggerBinding<string, bool>(Group, "ToggleSetting", ToggleSetting));
+            AddBinding(new TriggerBinding(Group, "ClearSmartCache", ClearSmartCacheAction));
+            AddBinding(new TriggerBinding<int>(Group, "SetAutoTunerProfile", SetAutoTunerProfileAction));
 
             if (s != null)
             {
                 s.OnSettingChanged += OnSettingChangedHandler;
             }
 
-            modLog.Info("[UltraPerformanceMod] InGameUISystem initialized successfully.");
+            modLog.Info("[UltraPerformanceMod] InGameUISystem with UltraCore Telemetry initialized successfully.");
         }
 
         protected override void OnDestroy()
@@ -104,6 +134,17 @@ namespace UltraPerformanceMod.Systems
 
             if (Instance == this) Instance = null;
             base.OnDestroy();
+        }
+
+        protected override void OnUpdate()
+        {
+            base.OnUpdate();
+            if (!m_IsPanelOpen) return;
+
+            m_UiFrameCounter++;
+            if (m_UiFrameCounter % 15 != 0) return;
+
+            UpdateDiagnosticsBindings();
         }
 
         private void OnSettingChangedHandler()
@@ -118,6 +159,7 @@ namespace UltraPerformanceMod.Systems
             if (m_IsPanelOpen)
             {
                 UpdateAllBindings();
+                UpdateDiagnosticsBindings();
             }
         }
 
@@ -177,6 +219,49 @@ namespace UltraPerformanceMod.Systems
             SetStatusMessage($"[OK] Ajuste atualizado: {key} = {(value ? "Ativado" : "Desativado")}");
         }
 
+        private void ClearSmartCacheAction()
+        {
+            UltraCoreEngine.Instance.Cache.Clear();
+            SetStatusMessage("[OK] Cache inteligente do UltraCore esvaziado e recalculado!");
+            UpdateDiagnosticsBindings();
+        }
+
+        private void SetAutoTunerProfileAction(int profileIdx)
+        {
+            var profile = (AutoTunerProfile)profileIdx;
+            UltraCoreEngine.Instance.AutoTuner.ActiveProfile = profile;
+            m_DiagProfileBinding.Update(profileIdx);
+            SetStatusMessage($"[OK] Perfil do UltraCore ajustado: {profile}");
+            UpdateDiagnosticsBindings();
+        }
+
+        private void UpdateDiagnosticsBindings()
+        {
+            var core = UltraCoreEngine.Instance;
+            var diag = core.Diagnostics;
+
+            m_DiagFpsBinding.Update(diag.InstantFps);
+            m_DiagAvgFpsBinding.Update(diag.AverageFps);
+            m_Diag1PercentLowBinding.Update(diag.OnePercentLowFps);
+            m_DiagFrameTimeBinding.Update(diag.FrameTimeMs);
+            m_DiagMemoryMbBinding.Update((float)diag.ManagedMemoryMb);
+            m_DiagModCpuMsBinding.Update((float)diag.TotalModCpuTimeMs);
+
+            string loadStr = core.AutoTuner.CurrentLoadState switch
+            {
+                SystemLoadState.Optimal => "\u00D3timo (>55 FPS)",
+                SystemLoadState.Moderate => "Moderado (35-55 FPS)",
+                SystemLoadState.Heavy => "Pesado (20-35 FPS)",
+                SystemLoadState.Critical => "Cr\u00EDtico (<20 FPS)",
+                _ => "Normal"
+            };
+            m_DiagLoadStateBinding.Update(loadStr);
+            m_DiagProfileBinding.Update((int)core.AutoTuner.ActiveProfile);
+            m_DiagFrameBudgetMsBinding.Update((float)core.AutoTuner.CurrentFrameBudgetMs);
+            m_DiagCacheEntriesBinding.Update(core.Cache.TotalCachedEntries);
+            m_DiagZeroAllocOpsBinding.Update((int)core.Memory.TotalZeroAllocOperations);
+        }
+
         public void ExecuteQuickAction(string actionKey)
         {
             try
@@ -204,18 +289,18 @@ namespace UltraPerformanceMod.Systems
                         break;
 
                     case "MaintainRoads":
-                        AutoMaintenanceSystem.Instance?.PerformRoadMaintenanceNow();
+                        AutoMaintenanceSystem.Instance?.MaintainAllNow();
                         SetStatusMessage("[OK] Asfalto de todas as vias e rodovias reparado 100%!");
                         break;
 
                     case "MaintainParks":
-                        AutoMaintenanceSystem.Instance?.PerformParkMaintenanceNow();
+                        AutoMaintenanceSystem.Instance?.MaintainAllNow();
                         SetStatusMessage("[OK] Todos os parques e pra\u00E7as revitalizados!");
                         break;
 
                     case "HealCity":
-                        AutoEmergencyServicesSystem.Instance?.HealAndProtectCityNow();
-                        SetStatusMessage("[OK] Sa\u00FAde e seguran\u00E7a: cidad\u00E3os socorridos e ocorr\u00EAncias resolvidas!");
+                        AutoEmergencyServicesSystem.Instance?.HealAllCitizensNow();
+                        SetStatusMessage("[OK] Sa\u00FAde: cidad\u00E3os doentes curados com sucesso!");
                         break;
 
                     case "DeliverMail":
@@ -224,7 +309,7 @@ namespace UltraPerformanceMod.Systems
                         break;
 
                     case "PurgeTrailers":
-                        int trailers = TrailerCleanupSystem.Instance?.PurgeAllTrailerAndVanPropsNow() ?? 0;
+                        int trailers = TrailerCleanupSystem.Instance?.ClearAllTrailersNow() ?? 0;
                         SetStatusMessage($"[OK] {trailers} trailers, cont\u00EAineres e vans de entrega removidos!");
                         break;
 

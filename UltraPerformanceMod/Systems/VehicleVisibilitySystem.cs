@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Colossal.Logging;
 using Game;
 using Game.Common;
@@ -14,8 +15,13 @@ namespace UltraPerformanceMod.Systems
     public class VehicleVisibilitySystem : GameSystemBase
     {
         private static readonly ILog log = Mod.log;
-        private EntityQuery m_AllVehiclesQuery = default!;
 
+        private EntityQuery m_VisibleAllVehiclesQuery = default!;
+        private EntityQuery m_HiddenAllVehiclesQuery = default!;
+        private EntityQuery m_VisibleBicyclesQuery = default!;
+        private EntityQuery m_HiddenBicyclesQuery = default!;
+
+        private readonly HashSet<Entity> m_MotorcyclePrefabs = new();
         private bool m_LastInvisibleVehicles = false;
         private bool m_LastInvisibleBicycles = false;
         private bool m_LastInvisibleMotorcycles = false;
@@ -25,13 +31,31 @@ namespace UltraPerformanceMod.Systems
         {
             base.OnCreate();
 
-            m_AllVehiclesQuery = GetEntityQuery(new EntityQueryDesc
+            m_VisibleAllVehiclesQuery = GetEntityQuery(new EntityQueryDesc
             {
                 All = new ComponentType[] { ComponentType.ReadOnly<Vehicle>() },
+                None = new ComponentType[] { ComponentType.ReadOnly<Hidden>(), ComponentType.ReadOnly<Deleted>() }
+            });
+
+            m_HiddenAllVehiclesQuery = GetEntityQuery(new EntityQueryDesc
+            {
+                All = new ComponentType[] { ComponentType.ReadOnly<Vehicle>(), ComponentType.ReadOnly<Hidden>() },
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
-            log.Info("[UltraPerformanceMod] VehicleVisibilitySystem initialized.");
+            m_VisibleBicyclesQuery = GetEntityQuery(new EntityQueryDesc
+            {
+                All = new ComponentType[] { ComponentType.ReadOnly<Vehicle>(), ComponentType.ReadOnly<Bicycle>() },
+                None = new ComponentType[] { ComponentType.ReadOnly<Hidden>(), ComponentType.ReadOnly<Deleted>() }
+            });
+
+            m_HiddenBicyclesQuery = GetEntityQuery(new EntityQueryDesc
+            {
+                All = new ComponentType[] { ComponentType.ReadOnly<Vehicle>(), ComponentType.ReadOnly<Bicycle>(), ComponentType.ReadOnly<Hidden>() },
+                None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
+            });
+
+            log.Info("[UltraPerformanceMod] High-Performance Zero-Alloc VehicleVisibilitySystem initialized.");
         }
 
         protected override void OnUpdate()
@@ -47,65 +71,55 @@ namespace UltraPerformanceMod.Systems
                                  invBicycles != m_LastInvisibleBicycles ||
                                  invMotorcycles != m_LastInvisibleMotorcycles);
 
-            // Periodically check every 32 frames or immediately when toggles change
+            // Throttle to every 32 frames unless toggles changed
             if (!stateChanged && (m_FrameCounter % 32 != 0))
             {
                 return;
             }
 
-            if (m_AllVehiclesQuery.IsEmptyIgnoreFilter)
+            // Case 1: Hide all vehicles completely (Fastest path: 100% zero-allocation direct ECS batch)
+            if (invVehicles)
             {
-                m_LastInvisibleVehicles = invVehicles;
-                m_LastInvisibleBicycles = invBicycles;
-                m_LastInvisibleMotorcycles = invMotorcycles;
-                return;
-            }
-
-            using var entities = m_AllVehiclesQuery.ToEntityArray(Allocator.TempJob);
-            for (int i = 0; i < entities.Length; i++)
-            {
-                var entity = entities[i];
-                if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity)) continue;
-
-                bool isBicycle = EntityManager.HasComponent<Bicycle>(entity);
-                bool isMotorcycle = false;
-
-                if (!isBicycle && EntityManager.HasComponent<PrefabRef>(entity))
+                if (!m_VisibleAllVehiclesQuery.IsEmptyIgnoreFilter)
                 {
-                    var prefab = EntityManager.GetComponentData<PrefabRef>(entity).m_Prefab;
-                    if (EntityManager.HasComponent<CarData>(prefab))
+                    EntityManager.AddComponent<Hidden>(m_VisibleAllVehiclesQuery);
+                    EntityManager.AddComponent<BatchesUpdated>(m_VisibleAllVehiclesQuery);
+                }
+            }
+            // Case 2: Vehicles were hidden and now restored completely
+            else if (m_LastInvisibleVehicles && !invVehicles && !invBicycles && !invMotorcycles)
+            {
+                if (!m_HiddenAllVehiclesQuery.IsEmptyIgnoreFilter)
+                {
+                    EntityManager.RemoveComponent<Hidden>(m_HiddenAllVehiclesQuery);
+                    EntityManager.AddComponent<BatchesUpdated>(m_HiddenAllVehiclesQuery);
+                }
+            }
+            // Case 3: Selective hiding (bicycles / motorcycles)
+            else
+            {
+                // Bicycles handling via dedicated zero-allocation queries
+                if (invBicycles)
+                {
+                    if (!m_VisibleBicyclesQuery.IsEmptyIgnoreFilter)
                     {
-                        var carData = EntityManager.GetComponentData<CarData>(prefab);
-                        if (carData.m_SizeClass == SizeClass.Small)
-                        {
-                            if (EntityManager.HasComponent<PersonalCarData>(prefab))
-                            {
-                                var pData = EntityManager.GetComponentData<PersonalCarData>(prefab);
-                                if (pData.m_PassengerCapacity <= 2)
-                                {
-                                    isMotorcycle = true;
-                                }
-                            }
-                        }
+                        EntityManager.AddComponent<Hidden>(m_VisibleBicyclesQuery);
+                        EntityManager.AddComponent<BatchesUpdated>(m_VisibleBicyclesQuery);
+                    }
+                }
+                else if (m_LastInvisibleBicycles && !invBicycles)
+                {
+                    if (!m_HiddenBicyclesQuery.IsEmptyIgnoreFilter)
+                    {
+                        EntityManager.RemoveComponent<Hidden>(m_HiddenBicyclesQuery);
+                        EntityManager.AddComponent<BatchesUpdated>(m_HiddenBicyclesQuery);
                     }
                 }
 
-                bool shouldHide = invVehicles;
-                if (!shouldHide)
+                // Motorcycles handling (uses prefab classification cache)
+                if (invMotorcycles || (m_LastInvisibleMotorcycles && !invMotorcycles))
                 {
-                    if (isBicycle && invBicycles) shouldHide = true;
-                    if (isMotorcycle && invMotorcycles) shouldHide = true;
-                }
-
-                bool isCurrentlyHidden = EntityManager.HasComponent<Hidden>(entity);
-
-                if (shouldHide && !isCurrentlyHidden)
-                {
-                    SetHiddenRecursive(entity, true);
-                }
-                else if (!shouldHide && isCurrentlyHidden)
-                {
-                    SetHiddenRecursive(entity, false);
+                    ProcessMotorcycles(invMotorcycles);
                 }
             }
 
@@ -114,70 +128,67 @@ namespace UltraPerformanceMod.Systems
             m_LastInvisibleMotorcycles = invMotorcycles;
         }
 
-        private void SetHiddenRecursive(Entity vehicle, bool hide)
+        private void ProcessMotorcycles(bool hide)
         {
-            if (hide)
-            {
-                if (!EntityManager.HasComponent<Hidden>(vehicle))
-                {
-                    EntityManager.AddComponent<Hidden>(vehicle);
-                    EntityManager.AddComponent<BatchesUpdated>(vehicle);
-                }
-            }
-            else
-            {
-                if (EntityManager.HasComponent<Hidden>(vehicle))
-                {
-                    EntityManager.RemoveComponent<Hidden>(vehicle);
-                    EntityManager.AddComponent<BatchesUpdated>(vehicle);
-                }
-            }
+            var query = hide ? m_VisibleAllVehiclesQuery : m_HiddenAllVehiclesQuery;
+            if (query.IsEmptyIgnoreFilter) return;
 
-            // Also hide/unhide child trailers in LayoutElement
-            if (EntityManager.HasComponent<LayoutElement>(vehicle))
+            // Iterate chunks without allocating all entities into a single TempJob array
+            using var chunks = query.ToArchetypeChunkArray(Allocator.TempJob);
+            var entityType = GetEntityTypeHandle();
+            var prefabType = GetComponentTypeHandle<PrefabRef>(true);
+
+            for (int c = 0; c < chunks.Length; c++)
             {
-                var layout = EntityManager.GetBuffer<LayoutElement>(vehicle);
-                for (int j = 0; j < layout.Length; j++)
+                var chunk = chunks[c];
+                if (!chunk.Has(ref prefabType)) continue;
+
+                var entities = chunk.GetNativeArray(entityType);
+                var prefabs = chunk.GetNativeArray(ref prefabType);
+
+                for (int i = 0; i < chunk.Count; i++)
                 {
-                    var sub = layout[j].m_Vehicle;
-                    if (EntityManager.Exists(sub) && !EntityManager.HasComponent<Deleted>(sub))
+                    var prefab = prefabs[i].m_Prefab;
+                    if (IsMotorcyclePrefab(prefab))
                     {
-                        if (hide && !EntityManager.HasComponent<Hidden>(sub))
+                        var entity = entities[i];
+                        if (hide)
                         {
-                            EntityManager.AddComponent<Hidden>(sub);
-                            EntityManager.AddComponent<BatchesUpdated>(sub);
+                            EntityManager.AddComponent<Hidden>(entity);
+                            EntityManager.AddComponent<BatchesUpdated>(entity);
                         }
-                        else if (!hide && EntityManager.HasComponent<Hidden>(sub))
+                        else
                         {
-                            EntityManager.RemoveComponent<Hidden>(sub);
-                            EntityManager.AddComponent<BatchesUpdated>(sub);
+                            EntityManager.RemoveComponent<Hidden>(entity);
+                            EntityManager.AddComponent<BatchesUpdated>(entity);
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool IsMotorcyclePrefab(Entity prefab)
+        {
+            if (m_MotorcyclePrefabs.Contains(prefab)) return true;
+
+            if (EntityManager.HasComponent<CarData>(prefab))
+            {
+                var carData = EntityManager.GetComponentData<CarData>(prefab);
+                if (carData.m_SizeClass == SizeClass.Small)
+                {
+                    if (EntityManager.HasComponent<PersonalCarData>(prefab))
+                    {
+                        var pData = EntityManager.GetComponentData<PersonalCarData>(prefab);
+                        if (pData.m_PassengerCapacity <= 2)
+                        {
+                            m_MotorcyclePrefabs.Add(prefab);
+                            return true;
                         }
                     }
                 }
             }
 
-            // Also hide/unhide SubObjects (cargo containers, accessories)
-            if (EntityManager.HasComponent<Game.Objects.SubObject>(vehicle))
-            {
-                var subObjects = EntityManager.GetBuffer<Game.Objects.SubObject>(vehicle);
-                for (int j = 0; j < subObjects.Length; j++)
-                {
-                    var child = subObjects[j].m_SubObject;
-                    if (EntityManager.Exists(child) && !EntityManager.HasComponent<Deleted>(child))
-                    {
-                        if (hide && !EntityManager.HasComponent<Hidden>(child))
-                        {
-                            EntityManager.AddComponent<Hidden>(child);
-                            EntityManager.AddComponent<BatchesUpdated>(child);
-                        }
-                        else if (!hide && EntityManager.HasComponent<Hidden>(child))
-                        {
-                            EntityManager.RemoveComponent<Hidden>(child);
-                            EntityManager.AddComponent<BatchesUpdated>(child);
-                        }
-                    }
-                }
-            }
+            return false;
         }
     }
 }

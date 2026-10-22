@@ -119,45 +119,14 @@ namespace UltraPerformanceMod.Systems
         {
             if (!m_VisibleAnimalsQuery.IsEmptyIgnoreFilter)
             {
-                using var animals = m_VisibleAnimalsQuery.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < animals.Length; i++)
-                {
-                    HideEntityAndSubObjects(animals[i]);
-                }
+                EntityManager.AddComponent<Hidden>(m_VisibleAnimalsQuery);
+                EntityManager.AddComponent<BatchesUpdated>(m_VisibleAnimalsQuery);
             }
 
             if (!m_VisiblePetsQuery.IsEmptyIgnoreFilter)
             {
-                using var pets = m_VisiblePetsQuery.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < pets.Length; i++)
-                {
-                    HideEntityAndSubObjects(pets[i]);
-                }
-            }
-        }
-
-        private void HideEntityAndSubObjects(Entity entity)
-        {
-            if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity)) return;
-
-            if (!EntityManager.HasComponent<Hidden>(entity))
-            {
-                EntityManager.AddComponent<Hidden>(entity);
-                EntityManager.AddComponent<BatchesUpdated>(entity);
-            }
-
-            if (EntityManager.HasComponent<Game.Objects.SubObject>(entity))
-            {
-                var subObjects = EntityManager.GetBuffer<Game.Objects.SubObject>(entity);
-                for (int j = 0; j < subObjects.Length; j++)
-                {
-                    var child = subObjects[j].m_SubObject;
-                    if (EntityManager.Exists(child) && !EntityManager.HasComponent<Hidden>(child) && !EntityManager.HasComponent<Deleted>(child))
-                    {
-                        EntityManager.AddComponent<Hidden>(child);
-                        EntityManager.AddComponent<BatchesUpdated>(child);
-                    }
-                }
+                EntityManager.AddComponent<Hidden>(m_VisiblePetsQuery);
+                EntityManager.AddComponent<BatchesUpdated>(m_VisiblePetsQuery);
             }
         }
 
@@ -165,31 +134,10 @@ namespace UltraPerformanceMod.Systems
         {
             if (!m_HiddenCreaturesQuery.IsEmptyIgnoreFilter)
             {
-                using var entities = m_HiddenCreaturesQuery.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < entities.Length; i++)
-                {
-                    var entity = entities[i];
-                    if (EntityManager.Exists(entity) && EntityManager.HasComponent<Hidden>(entity))
-                    {
-                        EntityManager.RemoveComponent<Hidden>(entity);
-                        EntityManager.AddComponent<BatchesUpdated>(entity);
-
-                        if (EntityManager.HasComponent<Game.Objects.SubObject>(entity))
-                        {
-                            var subObjects = EntityManager.GetBuffer<Game.Objects.SubObject>(entity);
-                            for (int j = 0; j < subObjects.Length; j++)
-                            {
-                                var child = subObjects[j].m_SubObject;
-                                if (EntityManager.Exists(child) && EntityManager.HasComponent<Hidden>(child))
-                                {
-                                    EntityManager.RemoveComponent<Hidden>(child);
-                                    EntityManager.AddComponent<BatchesUpdated>(child);
-                                }
-                            }
-                        }
-                    }
-                }
-                log.Info($"[UltraPerformanceMod] Restored visibility for {entities.Length} animals/pets.");
+                int count = m_HiddenCreaturesQuery.CalculateEntityCount();
+                EntityManager.RemoveComponent<Hidden>(m_HiddenCreaturesQuery);
+                EntityManager.AddComponent<BatchesUpdated>(m_HiddenCreaturesQuery);
+                log.Info($"[UltraPerformanceMod] Restored visibility for {count} animals/pets (Zero-alloc batch).");
             }
         }
 
@@ -197,22 +145,11 @@ namespace UltraPerformanceMod.Systems
         {
             if (m_WildAnimalsQuery.IsEmptyIgnoreFilter) return;
 
-            using var wildAnimals = m_WildAnimalsQuery.ToEntityArray(Allocator.TempJob);
-            int count = 0;
-
-            for (int i = 0; i < wildAnimals.Length; i++)
-            {
-                var animal = wildAnimals[i];
-                if (EntityManager.Exists(animal) && !EntityManager.HasComponent<Deleted>(animal))
-                {
-                    EntityManager.AddComponent<Deleted>(animal);
-                    count++;
-                }
-            }
-
+            int count = m_WildAnimalsQuery.CalculateEntityCount();
             if (count > 0)
             {
-                log.Info($"[UltraPerformanceMod] AnimalManagerSystem: Safely purged {count} wild animals from simulation.");
+                EntityManager.AddComponent<Deleted>(m_WildAnimalsQuery);
+                log.Info($"[UltraPerformanceMod] AnimalManagerSystem: Safely purged {count} wild animals from simulation (Zero-alloc batch).");
             }
         }
     }

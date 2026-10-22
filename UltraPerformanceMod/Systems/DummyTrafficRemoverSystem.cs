@@ -2,6 +2,7 @@ using Colossal.Logging;
 using Game;
 using Game.Common;
 using Game.Vehicles;
+using UltraPerformanceMod.Core;
 using UltraPerformanceMod.Utils;
 using Unity.Collections;
 using Unity.Entities;
@@ -24,17 +25,25 @@ namespace UltraPerformanceMod.Systems
 
             m_PersonalCarQuery = GetEntityQuery(new EntityQueryDesc
             {
-                All = new ComponentType[] { ComponentType.ReadOnly<PersonalCar>() },
+                All = new ComponentType[]
+                {
+                    ComponentType.ReadOnly<PersonalCar>(),
+                    ComponentType.ReadOnly<Vehicle>()
+                },
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
             m_DeliveryTruckQuery = GetEntityQuery(new EntityQueryDesc
             {
-                All = new ComponentType[] { ComponentType.ReadOnly<DeliveryTruck>() },
+                All = new ComponentType[]
+                {
+                    ComponentType.ReadOnly<DeliveryTruck>(),
+                    ComponentType.ReadOnly<Vehicle>()
+                },
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
-            log.Info("[UltraPerformanceMod] DummyTrafficRemoverSystem initialized.");
+            log.Info("[UltraPerformanceMod] High-Performance DummyTrafficRemoverSystem initialized.");
         }
 
         protected override void OnDestroy()
@@ -48,7 +57,9 @@ namespace UltraPerformanceMod.Systems
             if (Mod.Settings == null || !Mod.Settings.DisableDummyTraffic) return;
 
             m_FrameCounter++;
-            if (m_FrameCounter % 64 != 0) return;
+            float intervalScale = UltraCoreEngine.Instance.AutoTuner.TaskIntervalScale;
+            int scaledInterval = (int)(64 * intervalScale);
+            if (m_FrameCounter % System.Math.Max(32, scaledInterval) != 0) return;
 
             PurgeDummyTraffic();
         }
@@ -62,39 +73,58 @@ namespace UltraPerformanceMod.Systems
         {
             int purged = 0;
 
-            if (!m_PersonalCarQuery.IsEmptyIgnoreFilter)
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("DummyTrafficRemover"))
             {
-                using var carEntities = m_PersonalCarQuery.ToEntityArray(Allocator.TempJob);
-                using var carData = m_PersonalCarQuery.ToComponentDataArray<PersonalCar>(Allocator.TempJob);
-
-                for (int i = 0; i < carEntities.Length; i++)
+                if (!m_PersonalCarQuery.IsEmptyIgnoreFilter)
                 {
-                    if ((carData[i].m_State & PersonalCarFlags.DummyTraffic) != 0)
+                    using var chunks = m_PersonalCarQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var entityType = GetEntityTypeHandle();
+                    var carType = GetComponentTypeHandle<PersonalCar>(true);
+
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        SafeVehicleDespawner.Despawn(EntityManager, carEntities[i]);
-                        purged++;
+                        var chunk = chunks[c];
+                        var entities = chunk.GetNativeArray(entityType);
+                        var cars = chunk.GetNativeArray(ref carType);
+
+                        for (int i = 0; i < chunk.Count; i++)
+                        {
+                            if ((cars[i].m_State & PersonalCarFlags.DummyTraffic) != 0)
+                            {
+                                SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
+                                purged++;
+                            }
+                        }
                     }
                 }
-            }
 
-            if (!m_DeliveryTruckQuery.IsEmptyIgnoreFilter)
-            {
-                using var truckEntities = m_DeliveryTruckQuery.ToEntityArray(Allocator.TempJob);
-                using var truckData = m_DeliveryTruckQuery.ToComponentDataArray<DeliveryTruck>(Allocator.TempJob);
-
-                for (int i = 0; i < truckEntities.Length; i++)
+                if (!m_DeliveryTruckQuery.IsEmptyIgnoreFilter)
                 {
-                    if ((truckData[i].m_State & DeliveryTruckFlags.DummyTraffic) != 0)
+                    using var chunks = m_DeliveryTruckQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var entityType = GetEntityTypeHandle();
+                    var truckType = GetComponentTypeHandle<DeliveryTruck>(true);
+
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        SafeVehicleDespawner.Despawn(EntityManager, truckEntities[i]);
-                        purged++;
+                        var chunk = chunks[c];
+                        var entities = chunk.GetNativeArray(entityType);
+                        var trucks = chunk.GetNativeArray(ref truckType);
+
+                        for (int i = 0; i < chunk.Count; i++)
+                        {
+                            if ((trucks[i].m_State & DeliveryTruckFlags.DummyTraffic) != 0)
+                            {
+                                SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
+                                purged++;
+                            }
+                        }
                     }
                 }
             }
 
             if (purged > 0)
             {
-                log.Info($"[UltraPerformanceMod] Purged {purged} dummy vehicles safely.");
+                log.Info($"[UltraPerformanceMod] Purged {purged} dummy vehicles safely (Chunk-based).");
             }
 
             return purged;

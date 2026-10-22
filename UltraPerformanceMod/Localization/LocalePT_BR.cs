@@ -26,6 +26,7 @@ namespace UltraPerformanceMod.Localization
 
                 // Abas
                 { m_Setting.GetOptionTabLocaleID(Setting.TabPresets), "Predefinições" },
+                { m_Setting.GetOptionTabLocaleID(Setting.TabUltraCore), "UltraCore" },
                 { m_Setting.GetOptionTabLocaleID(Setting.TabVisibility), "Visibilidade" },
                 { m_Setting.GetOptionTabLocaleID(Setting.TabServices), "Serviços" },
                 { m_Setting.GetOptionTabLocaleID(Setting.TabTraffic), "Trânsito" },
@@ -35,12 +36,21 @@ namespace UltraPerformanceMod.Localization
 
                 // Grupos
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupPresets), "Perfis de Otimização" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.GroupUltraCore), "Motor Interno de Desempenho & Otimização" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupVisibility), "Renderização de Malhas e Entidades" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupServices), "Automação de Serviços Urbanos" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupTraffic), "Otimizações de Tráfego e Pathfinding" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupGraphics), "Água, Árvores e Efeitos Visuais" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupActions), "Limpeza Manual Instantânea" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupAbout), "Informações do Mod" },
+
+                // UltraCore
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UltraCoreAutoTuning)), "Auto-Tuner Adaptativo da Simulação" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.UltraCoreAutoTuning)), "Monitora a latência de quadros e a simulação em tempo real, ajustando os limites de execução para evitar micro-travamentos e manter a simulação fluida em megalópoles." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UltraCoreCacheEnabled)), "Smart Cache (Cadeias de Trânsito & Consultas)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.UltraCoreCacheEnabled)), "Memoriza avaliações de bloqueio de veículos e consultas estáticas com invalidação temporal inteligente, eliminando recálculos redundantes na CPU." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ClearUltraCoreCacheButton)), "Esvaziar Smart Cache" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ClearUltraCoreCacheButton)), "Limpa imediatamente as entradas memorizadas no cache interno do UltraCore para forçar um recálculo limpo." },
 
                 // Presets
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.Preset)), "Predefinição de Desempenho" },

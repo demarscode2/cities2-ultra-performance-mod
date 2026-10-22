@@ -42,7 +42,8 @@ namespace UltraPerformanceMod
 
                 // 4. Register ECS Systems in appropriate update phases
 
-                // Phase: PreCulling (Visibility & Rendering Control)
+                // Phase: PreCulling (UltraCore Engine, Visibility & Rendering Control)
+                updateSystem.UpdateAt<UltraCoreSystem>(SystemUpdatePhase.PreCulling);
                 updateSystem.UpdateAt<NPCVisibilitySystem>(SystemUpdatePhase.PreCulling);
                 updateSystem.UpdateAt<VehicleVisibilitySystem>(SystemUpdatePhase.PreCulling);
                 updateSystem.UpdateAt<AnimalManagerSystem>(SystemUpdatePhase.PreCulling);
@@ -105,6 +106,7 @@ namespace UltraPerformanceMod
             log.Info($"[{ModId}] OnDispose triggered.");
             try
             {
+                UltraPerformanceMod.Core.UltraCoreEngine.Instance.Shutdown();
                 if (Settings != null)
                 {
                     Settings.UnregisterInOptionsUI();

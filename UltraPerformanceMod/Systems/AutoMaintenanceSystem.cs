@@ -3,9 +3,9 @@ using Game;
 using Game.Buildings;
 using Game.Common;
 using Game.Net;
-using Game.Objects;
 using Game.Simulation;
 using Game.Vehicles;
+using UltraPerformanceMod.Core;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -18,7 +18,6 @@ namespace UltraPerformanceMod.Systems
         public static AutoMaintenanceSystem? Instance { get; private set; }
 
         private EntityQuery m_NetConditionQuery = default!;
-        private EntityQuery m_LaneConditionQuery = default!;
         private EntityQuery m_ParkQuery = default!;
         private EntityQuery m_MaintenanceRequestQuery = default!;
         private EntityQuery m_RoadMaintenanceVehicleQuery = default!;
@@ -32,13 +31,10 @@ namespace UltraPerformanceMod.Systems
 
             m_NetConditionQuery = GetEntityQuery(new EntityQueryDesc
             {
-                All = new ComponentType[] { ComponentType.ReadWrite<NetCondition>() },
-                None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
-            });
-
-            m_LaneConditionQuery = GetEntityQuery(new EntityQueryDesc
-            {
-                All = new ComponentType[] { ComponentType.ReadWrite<LaneCondition>() },
+                All = new ComponentType[]
+                {
+                    ComponentType.ReadWrite<NetCondition>()
+                },
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
@@ -66,7 +62,7 @@ namespace UltraPerformanceMod.Systems
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
-            log.Info("[UltraPerformanceMod] AutoMaintenanceSystem initialized.");
+            log.Info("[UltraPerformanceMod] High-Performance AutoMaintenanceSystem initialized.");
         }
 
         protected override void OnDestroy()
@@ -80,7 +76,9 @@ namespace UltraPerformanceMod.Systems
             if (Mod.Settings == null) return;
 
             m_FrameCounter++;
-            if (m_FrameCounter % 128 != 0) return;
+            float intervalScale = UltraCoreEngine.Instance.AutoTuner.TaskIntervalScale;
+            int scaledInterval = (int)(128 * intervalScale);
+            if (m_FrameCounter % System.Math.Max(32, scaledInterval) != 0) return;
 
             if (Mod.Settings.AutoRoadMaintenance)
             {
@@ -111,110 +109,105 @@ namespace UltraPerformanceMod.Systems
 
         private void PerformRoadMaintenance()
         {
-            // 1. Reset wear on all network road segments
-            if (!m_NetConditionQuery.IsEmptyIgnoreFilter)
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("RoadMaintenance"))
             {
-                using var chunks = m_NetConditionQuery.ToArchetypeChunkArray(Allocator.TempJob);
-                var netType = GetComponentTypeHandle<NetCondition>(false);
-
-                for (int c = 0; c < chunks.Length; c++)
+                // 1. Reset wear on all road network edges
+                if (!m_NetConditionQuery.IsEmptyIgnoreFilter)
                 {
-                    var chunk = chunks[c];
-                    var conditions = chunk.GetNativeArray(ref netType);
-                    for (int i = 0; i < chunk.Count; i++)
+                    using var chunks = m_NetConditionQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var conditionType = GetComponentTypeHandle<NetCondition>(false);
+
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        var cond = conditions[i];
-                        if (cond.m_Wear.x > 0f || cond.m_Wear.y > 0f)
+                        var chunk = chunks[c];
+                        var conditions = chunk.GetNativeArray(ref conditionType);
+
+                        for (int i = 0; i < chunk.Count; i++)
                         {
-                            cond.m_Wear = float2.zero;
-                            conditions[i] = cond;
+                            var cond = conditions[i];
+                            if (cond.m_Wear.x > 0f || cond.m_Wear.y > 0f)
+                            {
+                                cond.m_Wear = float2.zero;
+                                conditions[i] = cond;
+                            }
                         }
                     }
                 }
-            }
 
-            // 2. Reset wear on individual lanes
-            if (!m_LaneConditionQuery.IsEmptyIgnoreFilter)
-            {
-                using var chunks = m_LaneConditionQuery.ToArchetypeChunkArray(Allocator.TempJob);
-                var laneType = GetComponentTypeHandle<LaneCondition>(false);
-
-                for (int c = 0; c < chunks.Length; c++)
+                // 2. Purge road maintenance vehicles from the streets
+                if (!m_RoadMaintenanceVehicleQuery.IsEmptyIgnoreFilter)
                 {
-                    var chunk = chunks[c];
-                    var conditions = chunk.GetNativeArray(ref laneType);
-                    for (int i = 0; i < chunk.Count; i++)
+                    using var chunks = m_RoadMaintenanceVehicleQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var entityType = GetEntityTypeHandle();
+
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        var cond = conditions[i];
-                        if (cond.m_Wear > 0f)
+                        var chunk = chunks[c];
+                        var vehicles = chunk.GetNativeArray(entityType);
+                        for (int i = 0; i < chunk.Count; i++)
                         {
-                            cond.m_Wear = 0f;
-                            conditions[i] = cond;
+                            UltraPerformanceMod.Utils.SafeVehicleDespawner.Despawn(EntityManager, vehicles[i]);
                         }
                     }
                 }
-            }
 
-            // 3. Purge road maintenance vehicles from the streets
-            if (!m_RoadMaintenanceVehicleQuery.IsEmptyIgnoreFilter)
-            {
-                using var vehicles = m_RoadMaintenanceVehicleQuery.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < vehicles.Length; i++)
-                {
-                    UltraPerformanceMod.Utils.SafeVehicleDespawner.Despawn(EntityManager, vehicles[i]);
-                }
+                // 3. Delete lingering road maintenance requests (Zero-alloc batch)
+                DeleteMaintenanceRequests();
             }
-
-            // 4. Delete lingering road maintenance requests
-            DeleteMaintenanceRequests();
         }
 
         private void PerformParkMaintenance()
         {
-            // 1. Restore 100% maintenance on all parks
-            if (!m_ParkQuery.IsEmptyIgnoreFilter)
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("ParkMaintenance"))
             {
-                using var chunks = m_ParkQuery.ToArchetypeChunkArray(Allocator.TempJob);
-                var parkType = GetComponentTypeHandle<Park>(false);
-
-                for (int c = 0; c < chunks.Length; c++)
+                // 1. Restore 100% maintenance on all parks
+                if (!m_ParkQuery.IsEmptyIgnoreFilter)
                 {
-                    var chunk = chunks[c];
-                    var parks = chunk.GetNativeArray(ref parkType);
-                    for (int i = 0; i < chunk.Count; i++)
+                    using var chunks = m_ParkQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var parkType = GetComponentTypeHandle<Park>(false);
+
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        var park = parks[i];
-                        if (park.m_Maintenance < 1000)
+                        var chunk = chunks[c];
+                        var parks = chunk.GetNativeArray(ref parkType);
+                        for (int i = 0; i < chunk.Count; i++)
                         {
-                            park.m_Maintenance = 1000;
-                            parks[i] = park;
+                            var park = parks[i];
+                            if (park.m_Maintenance < 1000)
+                            {
+                                park.m_Maintenance = 1000;
+                                parks[i] = park;
+                            }
                         }
                     }
                 }
-            }
 
-            // 2. Purge park maintenance vehicles from the streets
-            if (!m_ParkMaintenanceVehicleQuery.IsEmptyIgnoreFilter)
-            {
-                using var vehicles = m_ParkMaintenanceVehicleQuery.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < vehicles.Length; i++)
+                // 2. Purge park maintenance vehicles from the streets
+                if (!m_ParkMaintenanceVehicleQuery.IsEmptyIgnoreFilter)
                 {
-                    UltraPerformanceMod.Utils.SafeVehicleDespawner.Despawn(EntityManager, vehicles[i]);
-                }
-            }
+                    using var chunks = m_ParkMaintenanceVehicleQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var entityType = GetEntityTypeHandle();
 
-            DeleteMaintenanceRequests();
+                    for (int c = 0; c < chunks.Length; c++)
+                    {
+                        var chunk = chunks[c];
+                        var vehicles = chunk.GetNativeArray(entityType);
+                        for (int i = 0; i < chunk.Count; i++)
+                        {
+                            UltraPerformanceMod.Utils.SafeVehicleDespawner.Despawn(EntityManager, vehicles[i]);
+                        }
+                    }
+                }
+
+                DeleteMaintenanceRequests();
+            }
         }
 
         private void DeleteMaintenanceRequests()
         {
             if (!m_MaintenanceRequestQuery.IsEmptyIgnoreFilter)
             {
-                using var requests = m_MaintenanceRequestQuery.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < requests.Length; i++)
-                {
-                    EntityManager.AddComponent<Deleted>(requests[i]);
-                }
+                EntityManager.AddComponent<Deleted>(m_MaintenanceRequestQuery);
             }
         }
     }

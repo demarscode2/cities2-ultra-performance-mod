@@ -3,6 +3,7 @@ using Game;
 using Game.Common;
 using Game.Simulation;
 using Game.Vehicles;
+using UltraPerformanceMod.Core;
 using UltraPerformanceMod.Utils;
 using Unity.Collections;
 using Unity.Entities;
@@ -42,7 +43,7 @@ namespace UltraPerformanceMod.Systems
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
-            log.Info("[UltraPerformanceMod] OutsideTaxiLimiterSystem initialized.");
+            log.Info("[UltraPerformanceMod] High-Performance OutsideTaxiLimiterSystem initialized.");
         }
 
         protected override void OnDestroy()
@@ -56,7 +57,9 @@ namespace UltraPerformanceMod.Systems
             if (Mod.Settings == null || !Mod.Settings.DisableOutsideTaxis) return;
 
             m_FrameCounter++;
-            if (m_FrameCounter % 64 != 0) return;
+            float intervalScale = UltraCoreEngine.Instance.AutoTuner.TaskIntervalScale;
+            int scaledInterval = (int)(128 * intervalScale);
+            if (m_FrameCounter % System.Math.Max(32, scaledInterval) != 0) return;
 
             PurgeOutsideTaxis();
         }
@@ -70,41 +73,60 @@ namespace UltraPerformanceMod.Systems
         {
             int purgedCount = 0;
 
-            if (!m_TaxiQuery.IsEmptyIgnoreFilter)
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("OutsideTaxiLimiter"))
             {
-                using var entities = m_TaxiQuery.ToEntityArray(Allocator.TempJob);
-                using var owners = m_TaxiQuery.ToComponentDataArray<Owner>(Allocator.TempJob);
-
-                for (int i = 0; i < entities.Length; i++)
+                if (!m_TaxiQuery.IsEmptyIgnoreFilter)
                 {
-                    Entity owner = owners[i].m_Owner;
-                    if (owner != Entity.Null && EntityManager.Exists(owner))
+                    using var chunks = m_TaxiQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var entityType = GetEntityTypeHandle();
+                    var ownerType = GetComponentTypeHandle<Owner>(true);
+
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        if (EntityManager.HasComponent<Game.Objects.OutsideConnection>(owner) ||
-                            EntityManager.HasComponent<Game.Net.OutsideConnection>(owner))
+                        var chunk = chunks[c];
+                        var entities = chunk.GetNativeArray(entityType);
+                        var owners = chunk.GetNativeArray(ref ownerType);
+
+                        for (int i = 0; i < chunk.Count; i++)
                         {
-                            SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
-                            purgedCount++;
+                            Entity owner = owners[i].m_Owner;
+                            if (owner != Entity.Null && EntityManager.Exists(owner))
+                            {
+                                if (EntityManager.HasComponent<Game.Objects.OutsideConnection>(owner) ||
+                                    EntityManager.HasComponent<Game.Net.OutsideConnection>(owner))
+                                {
+                                    SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
+                                    purgedCount++;
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            if (!m_TaxiRequestQuery.IsEmptyIgnoreFilter)
-            {
-                using var reqEntities = m_TaxiRequestQuery.ToEntityArray(Allocator.TempJob);
-                using var reqs = m_TaxiRequestQuery.ToComponentDataArray<TaxiRequest>(Allocator.TempJob);
-
-                for (int i = 0; i < reqEntities.Length; i++)
+                if (!m_TaxiRequestQuery.IsEmptyIgnoreFilter)
                 {
-                    Entity seeker = reqs[i].m_Seeker;
-                    if (seeker != Entity.Null && EntityManager.Exists(seeker))
+                    using var chunks = m_TaxiRequestQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var entityType = GetEntityTypeHandle();
+                    var reqType = GetComponentTypeHandle<TaxiRequest>(true);
+
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        if (EntityManager.HasComponent<Game.Objects.OutsideConnection>(seeker) ||
-                            EntityManager.HasComponent<Game.Net.OutsideConnection>(seeker))
+                        var chunk = chunks[c];
+                        var entities = chunk.GetNativeArray(entityType);
+                        var reqs = chunk.GetNativeArray(ref reqType);
+
+                        for (int i = 0; i < chunk.Count; i++)
                         {
-                            EntityManager.AddComponent<Deleted>(reqEntities[i]);
-                            purgedCount++;
+                            Entity seeker = reqs[i].m_Seeker;
+                            if (seeker != Entity.Null && EntityManager.Exists(seeker))
+                            {
+                                if (EntityManager.HasComponent<Game.Objects.OutsideConnection>(seeker) ||
+                                    EntityManager.HasComponent<Game.Net.OutsideConnection>(seeker))
+                                {
+                                    EntityManager.AddComponent<Deleted>(entities[i]);
+                                    purgedCount++;
+                                }
+                            }
                         }
                     }
                 }
@@ -112,7 +134,7 @@ namespace UltraPerformanceMod.Systems
 
             if (purgedCount > 0)
             {
-                log.Info($"[UltraPerformanceMod] Purged {purgedCount} outside connection taxis / requests safely.");
+                log.Info($"[UltraPerformanceMod] Purged {purgedCount} outside connection taxis / requests safely (Chunk-based).");
             }
 
             return purgedCount;

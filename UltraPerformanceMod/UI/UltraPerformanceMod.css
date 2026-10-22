@@ -386,3 +386,107 @@
     width: 24rem;
     height: 24rem;
 }
+
+/* ============================================================
+   UltraCore Telemetry & Diagnostics Styling
+   ============================================================ */
+.upm-telemetry-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8rem;
+    margin-bottom: 10rem;
+}
+
+.upm-metric-card {
+    background: rgba(14, 22, 34, 0.85);
+    border: 1rem solid rgba(255, 255, 255, 0.08);
+    border-radius: 6rem;
+    padding: 8rem 10rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.upm-metric-title {
+    font-size: 11rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5rem;
+    color: #7995b0;
+    margin-bottom: 3rem;
+}
+
+.upm-metric-val {
+    font-size: 20rem;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: baseline;
+}
+
+.upm-metric-unit {
+    font-size: 11rem;
+    font-weight: 500;
+    color: #8fa3b8;
+    margin-left: 3rem;
+}
+
+.upm-metric-good {
+    color: #00e676;
+}
+
+.upm-metric-warn {
+    color: #ffea00;
+}
+
+.upm-metric-bad {
+    color: #ff3d00;
+}
+
+.upm-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7rem 0;
+    border-bottom: 1rem solid rgba(255, 255, 255, 0.05);
+}
+
+.upm-status-row:last-child {
+    border-bottom: none;
+}
+
+.upm-status-label {
+    font-size: 13rem;
+    color: #c0d0e0;
+    font-weight: 600;
+}
+
+.upm-status-val {
+    font-size: 13rem;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.upm-btn-primary {
+    background: #4287f5;
+    color: #ffffff;
+    border: none;
+    padding: 7rem 12rem;
+    border-radius: 4rem;
+    font-size: 13rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6rem;
+}
+
+.upm-btn-primary:hover {
+    background: #5b99ff;
+    transform: translateY(-1rem);
+    box-shadow: 0 4rem 10rem rgba(66, 135, 245, 0.4);
+}
+
+.upm-btn-primary:active {
+    transform: translateY(0);
+}

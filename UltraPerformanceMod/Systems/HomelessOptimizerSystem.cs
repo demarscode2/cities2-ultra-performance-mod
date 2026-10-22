@@ -3,6 +3,7 @@ using Colossal.Logging;
 using Game;
 using Game.Citizens;
 using Game.Common;
+using UltraPerformanceMod.Core;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -12,6 +13,7 @@ namespace UltraPerformanceMod.Systems
     /// Solves the infamous CS2 Homeless Loop Bug where thousands of homeless citizens get trapped
     /// camping in parks or streets, flooding pathfind threads with endless calculation requests.
     /// Provides an automated periodic evacuation and a manual 1-click Quick Action button.
+    /// Uses archetype chunk iteration to eliminate large array allocations.
     /// </summary>
     public class HomelessOptimizerSystem : GameSystemBase
     {
@@ -65,29 +67,42 @@ namespace UltraPerformanceMod.Systems
             int purged = 0;
             try
             {
-                using var entities = m_HomelessHouseholdQuery.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < entities.Length; i++)
+                using (UltraCoreEngine.Instance.Diagnostics.Measure("HomelessOptimizer"))
                 {
-                    var household = entities[i];
-                    if (!EntityManager.Exists(household) || EntityManager.HasComponent<Deleted>(household))
-                        continue;
+                    using var chunks = m_HomelessHouseholdQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var entityType = GetEntityTypeHandle();
+                    var citizenBufferType = GetBufferTypeHandle<HouseholdCitizen>(true);
 
-                    // If household has citizens, also mark them Deleted so no orphan ghost citizens remain
-                    if (EntityManager.HasBuffer<HouseholdCitizen>(household))
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        var citizenBuffer = EntityManager.GetBuffer<HouseholdCitizen>(household);
-                        for (int c = 0; c < citizenBuffer.Length; c++)
+                        var chunk = chunks[c];
+                        var entities = chunk.GetNativeArray(entityType);
+                        bool hasCitizenBuffer = chunk.Has(ref citizenBufferType);
+                        var citizenBuffers = hasCitizenBuffer ? chunk.GetBufferAccessor(ref citizenBufferType) : default;
+
+                        for (int i = 0; i < chunk.Count; i++)
                         {
-                            var cim = citizenBuffer[c].m_Citizen;
-                            if (EntityManager.Exists(cim) && !EntityManager.HasComponent<Deleted>(cim))
+                            var household = entities[i];
+                            if (!EntityManager.Exists(household) || EntityManager.HasComponent<Deleted>(household))
+                                continue;
+
+                            if (hasCitizenBuffer)
                             {
-                                EntityManager.AddComponent<Deleted>(cim);
+                                var citizenBuffer = citizenBuffers[i];
+                                for (int b = 0; b < citizenBuffer.Length; b++)
+                                {
+                                    var cim = citizenBuffer[b].m_Citizen;
+                                    if (EntityManager.Exists(cim) && !EntityManager.HasComponent<Deleted>(cim))
+                                    {
+                                        EntityManager.AddComponent<Deleted>(cim);
+                                    }
+                                }
                             }
+
+                            EntityManager.AddComponent<Deleted>(household);
+                            purged++;
                         }
                     }
-
-                    EntityManager.AddComponent<Deleted>(household);
-                    purged++;
                 }
 
                 log.Info($"[UltraPerformanceMod] Purged {purged} stranded homeless households.");

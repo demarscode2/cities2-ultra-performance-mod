@@ -4,6 +4,7 @@ using Colossal.IO.AssetDatabase;
 using Game.Modding;
 using Game.Settings;
 using Game.UI;
+using UltraPerformanceMod.Core;
 using UltraPerformanceMod.Systems;
 
 namespace UltraPerformanceMod
@@ -17,12 +18,13 @@ namespace UltraPerformanceMod
     }
 
     [FileLocation("ModsSettings/UltraPerformanceMod/UltraPerformanceMod")]
-    [SettingsUITabOrder(TabPresets, TabVisibility, TabServices, TabTraffic, TabGraphics, TabActions, TabAbout)]
-    [SettingsUIGroupOrder(GroupPresets, GroupVisibility, GroupServices, GroupTraffic, GroupGraphics, GroupActions, GroupAbout)]
-    [SettingsUIShowGroupName(GroupPresets, GroupVisibility, GroupServices, GroupTraffic, GroupGraphics, GroupActions, GroupAbout)]
+    [SettingsUITabOrder(TabPresets, TabUltraCore, TabVisibility, TabServices, TabTraffic, TabGraphics, TabActions, TabAbout)]
+    [SettingsUIGroupOrder(GroupPresets, GroupUltraCore, GroupVisibility, GroupServices, GroupTraffic, GroupGraphics, GroupActions, GroupAbout)]
+    [SettingsUIShowGroupName(GroupPresets, GroupUltraCore, GroupVisibility, GroupServices, GroupTraffic, GroupGraphics, GroupActions, GroupAbout)]
     public class Setting : ModSetting
     {
         public const string TabPresets = "Presets";
+        public const string TabUltraCore = "UltraCore";
         public const string TabVisibility = "Visibility";
         public const string TabServices = "Services";
         public const string TabTraffic = "Traffic";
@@ -31,6 +33,7 @@ namespace UltraPerformanceMod
         public const string TabAbout = "About";
 
         public const string GroupPresets = "PresetGroup";
+        public const string GroupUltraCore = "UltraCoreGroup";
         public const string GroupVisibility = "VisibilityGroup";
         public const string GroupServices = "ServicesGroup";
         public const string GroupTraffic = "TrafficGroup";
@@ -39,6 +42,10 @@ namespace UltraPerformanceMod
         public const string GroupAbout = "AboutGroup";
 
         private PerformancePreset m_Preset = PerformancePreset.Medium;
+
+        // UltraCore Settings
+        private bool m_UltraCoreAutoTuning = true;
+        private bool m_UltraCoreCacheEnabled = true;
 
         // Visibility
         private bool m_InvisibleNPCs = false;
@@ -102,6 +109,48 @@ namespace UltraPerformanceMod
                     }
                     ApplyAndSave();
                 }
+            }
+        }
+
+        // --- ULTRACORE TAB ---
+        [SettingsUISection(TabUltraCore, GroupUltraCore)]
+        public bool UltraCoreAutoTuning
+        {
+            get => m_UltraCoreAutoTuning;
+            set
+            {
+                if (m_UltraCoreAutoTuning != value)
+                {
+                    m_UltraCoreAutoTuning = value;
+                    UltraCoreEngine.Instance.AutoTuner.ActiveProfile = value ? AutoTunerProfile.Auto : AutoTunerProfile.Balanced;
+                    ApplyAndSave();
+                }
+            }
+        }
+
+        [SettingsUISection(TabUltraCore, GroupUltraCore)]
+        public bool UltraCoreCacheEnabled
+        {
+            get => m_UltraCoreCacheEnabled;
+            set
+            {
+                if (m_UltraCoreCacheEnabled != value)
+                {
+                    m_UltraCoreCacheEnabled = value;
+                    UltraCoreEngine.Instance.Cache.IsEnabled = value;
+                    ApplyAndSave();
+                }
+            }
+        }
+
+        [SettingsUIButton]
+        [SettingsUISection(TabUltraCore, GroupUltraCore)]
+        public bool ClearUltraCoreCacheButton
+        {
+            set
+            {
+                Mod.log.Info("[UltraPerformanceMod] Action: ClearUltraCoreCache triggered.");
+                UltraCoreEngine.Instance.Cache.Clear();
             }
         }
 

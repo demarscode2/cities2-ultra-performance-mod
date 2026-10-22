@@ -5,6 +5,7 @@ using Game.Common;
 using Game.Objects;
 using Game.Simulation;
 using Game.Vehicles;
+using UltraPerformanceMod.Core;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -36,7 +37,7 @@ namespace UltraPerformanceMod.Systems
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
-            log.Info("[UltraPerformanceMod] AutoGarbageSystem initialized.");
+            log.Info("[UltraPerformanceMod] High-Performance AutoGarbageSystem initialized.");
         }
 
         protected override void OnDestroy()
@@ -50,7 +51,9 @@ namespace UltraPerformanceMod.Systems
             if (Mod.Settings == null || !Mod.Settings.AutoGarbage) return;
 
             m_FrameCounter++;
-            if (m_FrameCounter % 64 != 0) return;
+            float intervalScale = UltraCoreEngine.Instance.AutoTuner.TaskIntervalScale;
+            int scaledInterval = (int)(64 * intervalScale);
+            if (m_FrameCounter % System.Math.Max(32, scaledInterval) != 0) return;
 
             CleanAllGarbage();
             PurgeActiveGarbageTrucks();
@@ -68,28 +71,31 @@ namespace UltraPerformanceMod.Systems
             if (m_GarbageProducerQuery.IsEmptyIgnoreFilter) return 0;
 
             int cleanedCount = 0;
-            using var chunks = m_GarbageProducerQuery.ToArchetypeChunkArray(Allocator.TempJob);
-            var producerType = GetComponentTypeHandle<GarbageProducer>(false);
-
-            for (int c = 0; c < chunks.Length; c++)
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("AutoGarbage"))
             {
-                var chunk = chunks[c];
-                var producers = chunk.GetNativeArray(ref producerType);
+                using var chunks = m_GarbageProducerQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                var producerType = GetComponentTypeHandle<GarbageProducer>(false);
 
-                for (int i = 0; i < chunk.Count; i++)
+                for (int c = 0; c < chunks.Length; c++)
                 {
-                    var producer = producers[i];
-                    if (producer.m_Garbage > 0 || producer.m_CollectionRequest != Entity.Null)
-                    {
-                        if (producer.m_CollectionRequest != Entity.Null && EntityManager.Exists(producer.m_CollectionRequest))
-                        {
-                            EntityManager.AddComponent<Deleted>(producer.m_CollectionRequest);
-                        }
+                    var chunk = chunks[c];
+                    var producers = chunk.GetNativeArray(ref producerType);
 
-                        producer.m_Garbage = 0;
-                        producer.m_CollectionRequest = Entity.Null;
-                        producers[i] = producer;
-                        cleanedCount++;
+                    for (int i = 0; i < chunk.Count; i++)
+                    {
+                        var producer = producers[i];
+                        if (producer.m_Garbage > 0 || producer.m_CollectionRequest != Entity.Null)
+                        {
+                            if (producer.m_CollectionRequest != Entity.Null && EntityManager.Exists(producer.m_CollectionRequest))
+                            {
+                                EntityManager.AddComponent<Deleted>(producer.m_CollectionRequest);
+                            }
+
+                            producer.m_Garbage = 0;
+                            producer.m_CollectionRequest = Entity.Null;
+                            producers[i] = producer;
+                            cleanedCount++;
+                        }
                     }
                 }
             }
@@ -101,15 +107,24 @@ namespace UltraPerformanceMod.Systems
         {
             if (m_GarbageTruckQuery.IsEmptyIgnoreFilter) return;
 
-            using var trucks = m_GarbageTruckQuery.ToEntityArray(Allocator.TempJob);
-            for (int i = 0; i < trucks.Length; i++)
+            int count = 0;
+            using var chunks = m_GarbageTruckQuery.ToArchetypeChunkArray(Allocator.TempJob);
+            var entityType = GetEntityTypeHandle();
+
+            for (int c = 0; c < chunks.Length; c++)
             {
-                UltraPerformanceMod.Utils.SafeVehicleDespawner.Despawn(EntityManager, trucks[i]);
+                var chunk = chunks[c];
+                var trucks = chunk.GetNativeArray(entityType);
+                for (int i = 0; i < chunk.Count; i++)
+                {
+                    UltraPerformanceMod.Utils.SafeVehicleDespawner.Despawn(EntityManager, trucks[i]);
+                    count++;
+                }
             }
 
-            if (trucks.Length > 0)
+            if (count > 0)
             {
-                log.Info($"[UltraPerformanceMod] Purged {trucks.Length} active garbage trucks from streets.");
+                log.Info($"[UltraPerformanceMod] Purged {count} active garbage trucks from streets (Chunk-based).");
             }
         }
     }

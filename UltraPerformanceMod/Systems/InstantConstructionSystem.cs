@@ -2,6 +2,7 @@ using Colossal.Logging;
 using Game;
 using Game.Common;
 using Game.Objects;
+using UltraPerformanceMod.Core;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -26,7 +27,7 @@ namespace UltraPerformanceMod.Systems
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
-            log.Info("[UltraPerformanceMod] InstantConstructionSystem initialized.");
+            log.Info("[UltraPerformanceMod] High-Performance InstantConstructionSystem initialized.");
         }
 
         protected override void OnDestroy()
@@ -40,7 +41,6 @@ namespace UltraPerformanceMod.Systems
             if (Mod.Settings == null || !Mod.Settings.InstantConstruction) return;
 
             m_FrameCounter++;
-            // Check every 32 frames for newly started constructions
             if (m_FrameCounter % 32 != 0) return;
 
             CompleteAllUnderConstruction();
@@ -55,27 +55,34 @@ namespace UltraPerformanceMod.Systems
         {
             if (m_UnderConstructionQuery.IsEmptyIgnoreFilter) return;
 
-            using var entities = m_UnderConstructionQuery.ToEntityArray(Allocator.TempJob);
             int count = 0;
-
-            for (int i = 0; i < entities.Length; i++)
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("InstantConstruction"))
             {
-                var entity = entities[i];
-                if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity)) continue;
+                using var chunks = m_UnderConstructionQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                var ucType = GetComponentTypeHandle<UnderConstruction>(false);
 
-                var uc = EntityManager.GetComponentData<UnderConstruction>(entity);
-                if (uc.m_Progress < byte.MaxValue)
+                for (int c = 0; c < chunks.Length; c++)
                 {
-                    uc.m_Progress = byte.MaxValue;
-                    uc.m_Speed = byte.MaxValue;
-                    EntityManager.SetComponentData(entity, uc);
-                    count++;
+                    var chunk = chunks[c];
+                    var ucArray = chunk.GetNativeArray(ref ucType);
+
+                    for (int i = 0; i < chunk.Count; i++)
+                    {
+                        var uc = ucArray[i];
+                        if (uc.m_Progress < byte.MaxValue)
+                        {
+                            uc.m_Progress = byte.MaxValue;
+                            uc.m_Speed = byte.MaxValue;
+                            ucArray[i] = uc;
+                            count++;
+                        }
+                    }
                 }
             }
 
             if (count > 0)
             {
-                log.Info($"[UltraPerformanceMod] InstantConstruction: Instantly finalized {count} building constructions/upgrades.");
+                log.Info($"[UltraPerformanceMod] InstantConstruction: Instantly finalized {count} building constructions/upgrades (Direct chunk memory write).");
             }
         }
     }

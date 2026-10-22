@@ -2,6 +2,8 @@ using Colossal.Logging;
 using Game;
 using Game.Common;
 using Game.Vehicles;
+using UltraPerformanceMod.Core;
+using UltraPerformanceMod.Utils;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -22,11 +24,15 @@ namespace UltraPerformanceMod.Systems
 
             m_ParkedCarQuery = GetEntityQuery(new EntityQueryDesc
             {
-                All = new ComponentType[] { ComponentType.ReadOnly<ParkedCar>() },
+                All = new ComponentType[]
+                {
+                    ComponentType.ReadOnly<ParkedCar>(),
+                    ComponentType.ReadOnly<Vehicle>()
+                },
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
-            log.Info("[UltraPerformanceMod] ParkingOptimizerSystem initialized.");
+            log.Info("[UltraPerformanceMod] High-Performance ParkingOptimizerSystem initialized.");
         }
 
         protected override void OnDestroy()
@@ -40,7 +46,9 @@ namespace UltraPerformanceMod.Systems
             if (Mod.Settings == null || !Mod.Settings.OptimizeParking) return;
 
             m_FrameCounter++;
-            if (m_FrameCounter % 128 != 0) return;
+            float intervalScale = UltraCoreEngine.Instance.AutoTuner.TaskIntervalScale;
+            int scaledInterval = (int)(128 * intervalScale);
+            if (m_FrameCounter % System.Math.Max(32, scaledInterval) != 0) return;
 
             PurgeInvalidParkedCars();
         }
@@ -55,23 +63,34 @@ namespace UltraPerformanceMod.Systems
             if (m_ParkedCarQuery.IsEmptyIgnoreFilter) return 0;
 
             int purged = 0;
-            using var entities = m_ParkedCarQuery.ToEntityArray(Allocator.TempJob);
-            using var parkedCars = m_ParkedCarQuery.ToComponentDataArray<ParkedCar>(Allocator.TempJob);
-
-            for (int i = 0; i < entities.Length; i++)
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("ParkingOptimizer"))
             {
-                Entity lane = parkedCars[i].m_Lane;
-                // If lane is Null or does not exist in EntityManager, the car is an orphaned ghost car blocking pathfind searches
-                if (lane == Entity.Null || !EntityManager.Exists(lane))
+                using var chunks = m_ParkedCarQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                var entityType = GetEntityTypeHandle();
+                var parkedCarType = GetComponentTypeHandle<ParkedCar>(true);
+
+                for (int c = 0; c < chunks.Length; c++)
                 {
-                    UltraPerformanceMod.Utils.SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
-                    purged++;
+                    var chunk = chunks[c];
+                    var entities = chunk.GetNativeArray(entityType);
+                    var parkedCars = chunk.GetNativeArray(ref parkedCarType);
+
+                    for (int i = 0; i < chunk.Count; i++)
+                    {
+                        Entity lane = parkedCars[i].m_Lane;
+                        // If lane is Null or does not exist in EntityManager, the car is an orphaned ghost car blocking pathfind searches
+                        if (lane == Entity.Null || !EntityManager.Exists(lane))
+                        {
+                            SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
+                            purged++;
+                        }
+                    }
                 }
             }
 
             if (purged > 0)
             {
-                log.Info($"[UltraPerformanceMod] Purged {purged} invalid/orphaned parked cars.");
+                log.Info($"[UltraPerformanceMod] Purged {purged} invalid/orphaned parked cars (Chunk-based).");
             }
 
             return purged;

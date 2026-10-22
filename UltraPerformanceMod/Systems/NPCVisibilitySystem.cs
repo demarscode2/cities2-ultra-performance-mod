@@ -54,29 +54,21 @@ namespace UltraPerformanceMod.Systems
 
             if (isCurrentlyInvisible)
             {
-                // Hide any visible creature
+                // Hide any visible creature (Zero-allocation ECS query batching)
                 if (!m_VisibleCreaturesQuery.IsEmptyIgnoreFilter)
                 {
-                    using var entities = m_VisibleCreaturesQuery.ToEntityArray(Allocator.TempJob);
-                    if (entities.Length > 0)
-                    {
-                        EntityManager.AddComponent<Hidden>(entities);
-                        EntityManager.AddComponent<BatchesUpdated>(entities);
-                    }
+                    EntityManager.AddComponent<Hidden>(m_VisibleCreaturesQuery);
+                    EntityManager.AddComponent<BatchesUpdated>(m_VisibleCreaturesQuery);
                 }
             }
             else if (stateChanged && !isCurrentlyInvisible)
             {
-                // Restore visibility for all hidden creatures
+                // Restore visibility for all hidden creatures (Zero-allocation ECS query batching)
                 if (!m_HiddenCreaturesQuery.IsEmptyIgnoreFilter)
                 {
-                    using var entities = m_HiddenCreaturesQuery.ToEntityArray(Allocator.TempJob);
-                    if (entities.Length > 0)
-                    {
-                        EntityManager.RemoveComponent<Hidden>(entities);
-                        EntityManager.AddComponent<BatchesUpdated>(entities);
-                        log.Info($"[UltraPerformanceMod] Restored visibility for {entities.Length} NPCs/Creatures.");
-                    }
+                    EntityManager.RemoveComponent<Hidden>(m_HiddenCreaturesQuery);
+                    EntityManager.AddComponent<BatchesUpdated>(m_HiddenCreaturesQuery);
+                    log.Info("[UltraPerformanceMod] Restored visibility for NPCs/Creatures (Zero-alloc batch).");
                 }
             }
 

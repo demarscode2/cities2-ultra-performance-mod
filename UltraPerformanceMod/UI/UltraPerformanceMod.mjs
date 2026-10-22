@@ -31,6 +31,19 @@ const autoEvacuateHomeless$ = api.bindValue(Group, "AutoEvacuateHomeless", true)
 const autoClearDeadlocks$ = api.bindValue(Group, "AutoClearDeadlocks", false);
 const hideNotificationIcons$ = api.bindValue(Group, "HideNotificationIcons", false);
 
+// UltraCore Telemetry Bindings
+const diagFps$ = api.bindValue(Group, "DiagFps", 0);
+const diagAvgFps$ = api.bindValue(Group, "DiagAvgFps", 0);
+const diag1PercentLow$ = api.bindValue(Group, "Diag1PercentLow", 0);
+const diagFrameTime$ = api.bindValue(Group, "DiagFrameTime", 0);
+const diagMemoryMb$ = api.bindValue(Group, "DiagMemoryMb", 0);
+const diagModCpuMs$ = api.bindValue(Group, "DiagModCpuMs", 0);
+const diagLoadState$ = api.bindValue(Group, "DiagLoadState", "Moderado");
+const diagProfile$ = api.bindValue(Group, "DiagProfile", 0);
+const diagFrameBudgetMs$ = api.bindValue(Group, "DiagFrameBudgetMs", 1.2);
+const diagCacheEntries$ = api.bindValue(Group, "DiagCacheEntries", 0);
+const diagZeroAllocOps$ = api.bindValue(Group, "DiagZeroAllocOps", 0);
+
 // Event stopper
 const stopPropagation = (e) => {
     if (e && e.stopPropagation) {
@@ -191,6 +204,18 @@ const FloatingPanel = () => {
         const autoClearDeadlocks = api.useValue(autoClearDeadlocks$);
         const hideNotificationIcons = api.useValue(hideNotificationIcons$);
 
+        const diagFps = api.useValue(diagFps$);
+        const diagAvgFps = api.useValue(diagAvgFps$);
+        const diag1PercentLow = api.useValue(diag1PercentLow$);
+        const diagFrameTime = api.useValue(diagFrameTime$);
+        const diagMemoryMb = api.useValue(diagMemoryMb$);
+        const diagModCpuMs = api.useValue(diagModCpuMs$);
+        const diagLoadState = api.useValue(diagLoadState$);
+        const diagProfile = api.useValue(diagProfile$);
+        const diagFrameBudgetMs = api.useValue(diagFrameBudgetMs$);
+        const diagCacheEntries = api.useValue(diagCacheEntries$);
+        const diagZeroAllocOps = api.useValue(diagZeroAllocOps$);
+
         if (!isOpen) return null;
 
         const presetNames = ["Personalizado", "B\u00E1sico", "M\u00E9dio", "M\u00E1ximo"];
@@ -269,6 +294,14 @@ const FloatingPanel = () => {
                             onClick: () => setActiveTab("settings")
                         },
                         "Ajustes em Tempo Real"
+                    ),
+                    React.createElement(
+                        "button",
+                        {
+                            className: "upm-tab-item" + (activeTab === "ultracore" ? " active" : ""),
+                            onClick: () => setActiveTab("ultracore")
+                        },
+                        "UltraCore & Telemetria"
                     ),
                     React.createElement(
                         "button",
@@ -509,6 +542,162 @@ const FloatingPanel = () => {
                                             checked: item.val,
                                             onChange: (val) => api.trigger(Group, "ToggleSetting", item.key, val)
                                         })
+                                    )
+                                )
+                            )
+                        ),
+                    // TAB: ULTRACORE & DIAGNOSTICS
+                    activeTab === "ultracore" &&
+                        React.createElement(
+                            React.Fragment,
+                            null,
+                            // Section: Real-Time Telemetry
+                            React.createElement(
+                                "div",
+                                { className: "upm-group-section" },
+                                React.createElement("div", { className: "upm-group-title" }, "Telemetria de Quadros & Simula\u00E7\u00E3o (Tempo Real)"),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-telemetry-grid" },
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "FPS Instant\u00E2neo"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val " + (diagFps >= 45 ? "upm-metric-good" : (diagFps >= 25 ? "upm-metric-warn" : "upm-metric-bad")) },
+                                            (diagFps > 0 ? diagFps.toFixed(1) : "--")
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "FPS M\u00E9dio (120q)"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val " + (diagAvgFps >= 45 ? "upm-metric-good" : (diagAvgFps >= 25 ? "upm-metric-warn" : "upm-metric-bad")) },
+                                            (diagAvgFps > 0 ? diagAvgFps.toFixed(1) : "--")
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "1% Low FPS"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val " + (diag1PercentLow >= 30 ? "upm-metric-good" : (diag1PercentLow >= 18 ? "upm-metric-warn" : "upm-metric-bad")) },
+                                            (diag1PercentLow > 0 ? diag1PercentLow.toFixed(1) : "--")
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "Tempo de Quadro"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val" },
+                                            (diagFrameTime > 0 ? diagFrameTime.toFixed(1) : "--"),
+                                            React.createElement("span", { className: "upm-metric-unit" }, "ms")
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "Mem\u00F3ria GC"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val" },
+                                            (diagMemoryMb > 0 ? diagMemoryMb.toFixed(0) : "--"),
+                                            React.createElement("span", { className: "upm-metric-unit" }, "MB")
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "CPU Mod"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val upm-metric-good" },
+                                            (diagModCpuMs >= 0 ? diagModCpuMs.toFixed(2) : "--"),
+                                            React.createElement("span", { className: "upm-metric-unit" }, "ms")
+                                        )
+                                    )
+                                )
+                            ),
+                            // Section: Auto-Tuner & Adaptive Budgets
+                            React.createElement(
+                                "div",
+                                { className: "upm-group-section" },
+                                React.createElement("div", { className: "upm-group-title" }, "Auto-Tuner Adaptativo da Simula\u00E7\u00E3o"),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-status-row" },
+                                    React.createElement("span", { className: "upm-status-label" }, "Estado de Carga da CPU:"),
+                                    React.createElement("span", { className: "upm-status-val" }, diagLoadState || "Normal")
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-status-row" },
+                                    React.createElement("span", { className: "upm-status-label" }, "Or\u00E7amento por Quadro (Budget):"),
+                                    React.createElement("span", { className: "upm-status-val" }, (diagFrameBudgetMs ? diagFrameBudgetMs.toFixed(2) : "1.20") + " ms")
+                                ),
+                                React.createElement("div", { style: { marginTop: "8rem", marginBottom: "4rem", fontSize: "12rem", color: "#8fa3b8" } }, "Perfil de Execu\u00E7\u00E3o do Auto-Tuner:"),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-segmented-bar" },
+                                    [
+                                        { label: "Auto (Recomendado)", idx: 0 },
+                                        { label: "Conservador", idx: 1 },
+                                        { label: "Equilibrado", idx: 2 },
+                                        { label: "Agressivo", idx: 3 }
+                                    ].map((p) =>
+                                        React.createElement(
+                                            "button",
+                                            {
+                                                key: p.idx,
+                                                className: "upm-seg-btn" + (diagProfile === p.idx ? " active" : ""),
+                                                onClick: () => api.trigger(Group, "SetAutoTunerProfile", p.idx)
+                                            },
+                                            p.label
+                                        )
+                                    )
+                                )
+                            ),
+                            // Section: Smart Cache & Zero-Alloc Memory
+                            React.createElement(
+                                "div",
+                                { className: "upm-group-section" },
+                                React.createElement("div", { className: "upm-group-title" }, "Smart Cache & Otimiza\u00E7\u00F5es Zero-Alloc"),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-status-row" },
+                                    React.createElement("span", { className: "upm-status-label" }, "Cadeias de Bloqueio em Cache:"),
+                                    React.createElement("span", { className: "upm-status-val" }, (diagCacheEntries || 0) + " entradas")
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-status-row" },
+                                    React.createElement("span", { className: "upm-status-label" }, "A\u00E7\u00F5es Zero-Alloc (ECS Direto):"),
+                                    React.createElement("span", { className: "upm-status-val upm-metric-good" }, (diagZeroAllocOps || 0) + " opera\u00E7\u00F5es")
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { style: { marginTop: "10rem", display: "flex", justifyContent: "flex-end" } },
+                                    React.createElement(
+                                        "button",
+                                        {
+                                            className: "upm-btn-primary",
+                                            onClick: () => api.trigger(Group, "ClearSmartCache")
+                                        },
+                                        React.createElement("svg", {
+                                            viewBox: "0 0 24 24",
+                                            width: "14rem",
+                                            height: "14rem",
+                                            fill: "currentColor"
+                                        },
+                                            React.createElement("path", { d: "M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" })
+                                        ),
+                                        "Esvaziar Smart Cache"
                                     )
                                 )
                             )

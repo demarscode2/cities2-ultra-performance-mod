@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using Colossal.Logging;
 using Game;
 using Game.Common;
 using Game.Objects;
 using Game.Prefabs;
 using Game.Vehicles;
+using UltraPerformanceMod.Core;
 using UltraPerformanceMod.Utils;
 using Unity.Collections;
 using Unity.Entities;
@@ -15,6 +17,7 @@ namespace UltraPerformanceMod.Systems
     /// Safely cleans up orphaned trailers, loose containers, trailer props, and delivery van props
     /// (e.g. "Trailer pequeno Prop", "Trailer intermodal prop", "trailer para tronco", "Reboque prop",
     /// "trailer de viagem", "vans de entrega") to eliminate the "yo-yo" glitch and boost simulation FPS.
+    /// Uses archetype chunk iteration and prefab memoization cache to prevent memory churn.
     /// </summary>
     public class TrailerCleanupSystem : GameSystemBase
     {
@@ -25,6 +28,7 @@ namespace UltraPerformanceMod.Systems
         private EntityQuery m_CarTrailerAttachedQuery = default!;
         private EntityQuery m_CarTrailerOwnerQuery = default!;
         private EntityQuery m_StaticPropQuery = default!;
+        private readonly Dictionary<Entity, bool> m_PrefabMatchCache = new();
         private uint m_FrameCounter = 0;
 
         protected override void OnCreate()
@@ -68,19 +72,21 @@ namespace UltraPerformanceMod.Systems
                 },
                 None = new ComponentType[]
                 {
-                    ComponentType.ReadOnly<Deleted>(),
+                    ComponentType.ReadOnly<Vehicle>(),
                     ComponentType.ReadOnly<Game.Buildings.Building>(),
                     ComponentType.ReadOnly<Game.Net.Node>(),
-                    ComponentType.ReadOnly<Game.Net.Edge>()
+                    ComponentType.ReadOnly<Game.Net.Edge>(),
+                    ComponentType.ReadOnly<Deleted>()
                 }
             });
 
-            log.Info("[UltraPerformanceMod] Advanced TrailerCleanupSystem initialized.");
+            log.Info("[UltraPerformanceMod] High-Performance TrailerCleanupSystem initialized.");
         }
 
         protected override void OnDestroy()
         {
             if (Instance == this) Instance = null;
+            m_PrefabMatchCache.Clear();
             base.OnDestroy();
         }
 
@@ -89,40 +95,58 @@ namespace UltraPerformanceMod.Systems
             if (Mod.Settings == null) return;
 
             m_FrameCounter++;
-            if (m_FrameCounter % 64 != 0) return;
+            float intervalScale = UltraCoreEngine.Instance.AutoTuner.TaskIntervalScale;
+            int scaledInterval = (int)(256 * intervalScale);
+            if (m_FrameCounter % Math.Max(64, scaledInterval) != 0) return;
 
-            PurgeOrphanedTrailers();
+            PurgeOrphanVehicleTrailers();
         }
 
         public int PurgeOrphanTrailersNow()
         {
-            int vehicles = PurgeOrphanedTrailers();
-            int props = PurgeTrailerAndVanProps();
-            return vehicles + props;
+            return ClearAllTrailersNow();
         }
 
         public int PurgeAllTrailerAndVanPropsNow()
         {
-            return PurgeOrphanTrailersNow();
+            return ClearAllTrailersNow();
         }
 
-        private int PurgeOrphanedTrailers()
+        public int ClearAllTrailersNow()
+        {
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("TrailerCleanup"))
+            {
+                int vehicleTrailers = PurgeOrphanVehicleTrailers();
+                int propTrailers = PurgeTrailerAndVanProps();
+                return vehicleTrailers + propTrailers;
+            }
+        }
+
+        public int PurgeOrphanVehicleTrailers()
         {
             int purged = 0;
 
             // 1. Scan vehicle trailers with Attached component
             if (!m_CarTrailerAttachedQuery.IsEmptyIgnoreFilter)
             {
-                using var entities = m_CarTrailerAttachedQuery.ToEntityArray(Allocator.TempJob);
-                using var attachedData = m_CarTrailerAttachedQuery.ToComponentDataArray<Attached>(Allocator.TempJob);
+                using var chunks = m_CarTrailerAttachedQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                var entityType = GetEntityTypeHandle();
+                var attachedType = GetComponentTypeHandle<Attached>(true);
 
-                for (int i = 0; i < entities.Length; i++)
+                for (int c = 0; c < chunks.Length; c++)
                 {
-                    Entity parent = attachedData[i].m_Parent;
-                    if (parent == Entity.Null || !EntityManager.Exists(parent) || EntityManager.HasComponent<Deleted>(parent))
+                    var chunk = chunks[c];
+                    var entities = chunk.GetNativeArray(entityType);
+                    var attached = chunk.GetNativeArray(ref attachedType);
+
+                    for (int i = 0; i < chunk.Count; i++)
                     {
-                        SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
-                        purged++;
+                        Entity parent = attached[i].m_Parent;
+                        if (parent == Entity.Null || !EntityManager.Exists(parent) || EntityManager.HasComponent<Deleted>(parent))
+                        {
+                            SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
+                            purged++;
+                        }
                     }
                 }
             }
@@ -130,16 +154,24 @@ namespace UltraPerformanceMod.Systems
             // 2. Scan vehicle trailers with Owner component
             if (!m_CarTrailerOwnerQuery.IsEmptyIgnoreFilter)
             {
-                using var trailerEntities = m_CarTrailerOwnerQuery.ToEntityArray(Allocator.TempJob);
-                using var ownerData = m_CarTrailerOwnerQuery.ToComponentDataArray<Owner>(Allocator.TempJob);
+                using var chunks = m_CarTrailerOwnerQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                var entityType = GetEntityTypeHandle();
+                var ownerType = GetComponentTypeHandle<Owner>(true);
 
-                for (int i = 0; i < trailerEntities.Length; i++)
+                for (int c = 0; c < chunks.Length; c++)
                 {
-                    Entity owner = ownerData[i].m_Owner;
-                    if (owner == Entity.Null || !EntityManager.Exists(owner) || EntityManager.HasComponent<Deleted>(owner))
+                    var chunk = chunks[c];
+                    var entities = chunk.GetNativeArray(entityType);
+                    var owners = chunk.GetNativeArray(ref ownerType);
+
+                    for (int i = 0; i < chunk.Count; i++)
                     {
-                        SafeVehicleDespawner.Despawn(EntityManager, trailerEntities[i]);
-                        purged++;
+                        Entity owner = owners[i].m_Owner;
+                        if (owner == Entity.Null || !EntityManager.Exists(owner) || EntityManager.HasComponent<Deleted>(owner))
+                        {
+                            SafeVehicleDespawner.Despawn(EntityManager, entities[i]);
+                            purged++;
+                        }
                     }
                 }
             }
@@ -156,22 +188,51 @@ namespace UltraPerformanceMod.Systems
         {
             if (m_StaticPropQuery.IsEmptyIgnoreFilter) return 0;
 
-            using var entities = m_StaticPropQuery.ToEntityArray(Allocator.TempJob);
-            using var prefabRefs = m_StaticPropQuery.ToComponentDataArray<PrefabRef>(Allocator.TempJob);
+            using var chunks = m_StaticPropQuery.ToArchetypeChunkArray(Allocator.TempJob);
+            var entityType = GetEntityTypeHandle();
+            var prefabType = GetComponentTypeHandle<PrefabRef>(true);
 
             int purged = 0;
-            for (int i = 0; i < entities.Length; i++)
+            for (int c = 0; c < chunks.Length; c++)
             {
-                var entity = entities[i];
-                if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity)) continue;
+                var chunk = chunks[c];
+                var entities = chunk.GetNativeArray(entityType);
+                var prefabs = chunk.GetNativeArray(ref prefabType);
 
-                string prefabName = m_PrefabSystem.GetPrefabName(prefabRefs[i].m_Prefab);
-                if (string.IsNullOrEmpty(prefabName)) continue;
+                for (int i = 0; i < chunk.Count; i++)
+                {
+                    var entity = entities[i];
+                    if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity)) continue;
 
-                string lower = prefabName.ToLowerInvariant();
+                    if (IsTargetPropPrefab(prefabs[i].m_Prefab))
+                    {
+                        EntityManager.AddComponent<Deleted>(entity);
+                        purged++;
+                    }
+                }
+            }
 
-                // Target: "Trailer pequeno Prop", "Trailer intermodal prop", "trailer para tronco", "Reboque prop", "trailer de viagem", "vans de entrega"
-                if (lower.Contains("trailer") ||
+            if (purged > 0)
+            {
+                log.Info($"[UltraPerformanceMod] Purged {purged} loose trailer/van props.");
+            }
+
+            return purged;
+        }
+
+        private bool IsTargetPropPrefab(Entity prefab)
+        {
+            if (m_PrefabMatchCache.TryGetValue(prefab, out bool match)) return match;
+
+            string prefabName = m_PrefabSystem.GetPrefabName(prefab);
+            if (string.IsNullOrEmpty(prefabName))
+            {
+                m_PrefabMatchCache[prefab] = false;
+                return false;
+            }
+
+            string lower = prefabName.ToLowerInvariant();
+            match = lower.Contains("trailer") ||
                     lower.Contains("reboque") ||
                     lower.Contains("intermodal") ||
                     lower.Contains("tronco") ||
@@ -181,26 +242,10 @@ namespace UltraPerformanceMod.Systems
                     lower.Contains("deliveryvan") ||
                     lower.Contains("delivery_van") ||
                     (lower.Contains("delivery") && lower.Contains("van")) ||
-                    (lower.Contains("entrega") && lower.Contains("van")))
-                {
-                    if (EntityManager.HasComponent<Vehicle>(entity))
-                    {
-                        SafeVehicleDespawner.Despawn(EntityManager, entity);
-                    }
-                    else
-                    {
-                        EntityManager.AddComponent<Deleted>(entity);
-                    }
-                    purged++;
-                }
-            }
+                    (lower.Contains("entrega") && lower.Contains("van"));
 
-            if (purged > 0)
-            {
-                log.Info($"[UltraPerformanceMod] Purged {purged} trailer/reboque/van props from map.");
-            }
-
-            return purged;
+            m_PrefabMatchCache[prefab] = match;
+            return match;
         }
     }
 }

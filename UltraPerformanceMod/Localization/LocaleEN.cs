@@ -26,6 +26,7 @@ namespace UltraPerformanceMod.Localization
 
                 // Tabs
                 { m_Setting.GetOptionTabLocaleID(Setting.TabPresets), "Presets" },
+                { m_Setting.GetOptionTabLocaleID(Setting.TabUltraCore), "UltraCore" },
                 { m_Setting.GetOptionTabLocaleID(Setting.TabVisibility), "Visibility" },
                 { m_Setting.GetOptionTabLocaleID(Setting.TabServices), "Services" },
                 { m_Setting.GetOptionTabLocaleID(Setting.TabTraffic), "Traffic" },
@@ -35,12 +36,21 @@ namespace UltraPerformanceMod.Localization
 
                 // Groups
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupPresets), "Optimization Presets" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.GroupUltraCore), "Internal Performance & Simulation Engine" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupVisibility), "Entity & Mesh Rendering" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupServices), "City Services Automation" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupTraffic), "Traffic & Pathfinding Optimizations" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupGraphics), "Water, Trees & Visual Effects" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupActions), "Instant Manual Cleanup" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.GroupAbout), "Mod Information" },
+
+                // UltraCore
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UltraCoreAutoTuning)), "Adaptive Simulation Auto-Tuner" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.UltraCoreAutoTuning)), "Monitors frame latency and simulation step time in real-time, dynamically adapting background task budgets to prevent micro-stutters in mega-cities." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UltraCoreCacheEnabled)), "Smart Cache (Traffic Blocker Chains & Queries)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.UltraCoreCacheEnabled)), "Memoizes vehicle blocker evaluations and static spatial queries with intelligent TTL expiration, eliminating repetitive CPU recalculations." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ClearUltraCoreCacheButton)), "Flush Smart Cache" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ClearUltraCoreCacheButton)), "Instantly clears all cached evaluations in the UltraCore engine to trigger fresh calculations." },
 
                 // Presets
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.Preset)), "Performance Preset" },

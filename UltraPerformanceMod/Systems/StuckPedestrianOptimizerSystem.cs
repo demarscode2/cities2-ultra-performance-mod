@@ -3,6 +3,7 @@ using Colossal.Logging;
 using Game;
 using Game.Common;
 using Game.Creatures;
+using UltraPerformanceMod.Core;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -11,6 +12,7 @@ namespace UltraPerformanceMod.Systems
     /// <summary>
     /// Detects and clears pedestrians trapped with CreatureLaneFlags.Stuck on glitched sidewalks,
     /// crosswalks, or station steps, preventing infinite pathfind retries.
+    /// Uses archetype chunk iteration to eliminate large array allocations.
     /// </summary>
     public class StuckPedestrianOptimizerSystem : GameSystemBase
     {
@@ -55,18 +57,30 @@ namespace UltraPerformanceMod.Systems
             int cleared = 0;
             try
             {
-                using var entities = m_StuckPedestrianQuery.ToEntityArray(Allocator.TempJob);
-                for (int i = 0; i < entities.Length; i++)
+                using (UltraCoreEngine.Instance.Diagnostics.Measure("StuckPedestrianOptimizer"))
                 {
-                    var entity = entities[i];
-                    if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity))
-                        continue;
+                    using var chunks = m_StuckPedestrianQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                    var entityType = GetEntityTypeHandle();
+                    var laneType = GetComponentTypeHandle<HumanCurrentLane>(true);
 
-                    var lane = EntityManager.GetComponentData<HumanCurrentLane>(entity);
-                    if ((lane.m_Flags & CreatureLaneFlags.Stuck) != 0)
+                    for (int c = 0; c < chunks.Length; c++)
                     {
-                        EntityManager.AddComponent<Deleted>(entity);
-                        cleared++;
+                        var chunk = chunks[c];
+                        var entities = chunk.GetNativeArray(entityType);
+                        var lanes = chunk.GetNativeArray(ref laneType);
+
+                        for (int i = 0; i < chunk.Count; i++)
+                        {
+                            var entity = entities[i];
+                            if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity))
+                                continue;
+
+                            if ((lanes[i].m_Flags & CreatureLaneFlags.Stuck) != 0)
+                            {
+                                EntityManager.AddComponent<Deleted>(entity);
+                                cleared++;
+                            }
+                        }
                     }
                 }
 

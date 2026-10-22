@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
 using Colossal.Logging;
 using Game;
 using Game.Common;
 using Game.Events;
 using Game.Objects;
 using Game.Vehicles;
+using UltraPerformanceMod.Core;
 using UltraPerformanceMod.Utils;
 using Unity.Collections;
 using Unity.Entities;
@@ -17,6 +17,7 @@ namespace UltraPerformanceMod.Systems
     /// Accurately detects and clears genuine traffic deadlocks without removing vehicles
     /// that are behaving normally (waiting at traffic lights, pedestrian crossings, bridges,
     /// boarding/disembarking passengers, or loading/unloading cargo).
+    /// Accelerated by UltraCore SmartCache and budgeted time-slicing.
     /// </summary>
     public class TrafficDeadlockBreakerSystem : GameSystemBase
     {
@@ -48,7 +49,7 @@ namespace UltraPerformanceMod.Systems
                 None = new ComponentType[] { ComponentType.ReadOnly<Deleted>() }
             });
 
-            log.Info("[UltraPerformanceMod] Smart TrafficDeadlockBreakerSystem initialized.");
+            log.Info("[UltraPerformanceMod] Smart TrafficDeadlockBreakerSystem with UltraCache initialized.");
         }
 
         protected override void OnDestroy()
@@ -62,8 +63,10 @@ namespace UltraPerformanceMod.Systems
             if (Mod.Settings == null || !Mod.Settings.AutoClearDeadlocks) return;
 
             m_FrameCounter++;
-            // Check once every 256 frames (~4 seconds) to avoid CPU churn
-            if (m_FrameCounter % 256 != 0) return;
+            // Check once every 256 frames (~4 seconds) or adapt via AutoTuner
+            float intervalScale = UltraCoreEngine.Instance.AutoTuner.TaskIntervalScale;
+            int scaledInterval = (int)(256 * intervalScale);
+            if (m_FrameCounter % Math.Max(64, scaledInterval) != 0) return;
 
             ClearDeadlockedVehicles(Mod.Settings.DeadlockTimeoutSeconds);
         }
@@ -84,18 +87,28 @@ namespace UltraPerformanceMod.Systems
         {
             if (m_VehiclesOnLaneQuery.IsEmptyIgnoreFilter) return 0;
 
-            using var vehicleEntities = m_VehiclesOnLaneQuery.ToEntityArray(Allocator.TempJob);
             int deadlocksRemoved = 0;
-
-            for (int i = 0; i < vehicleEntities.Length; i++)
+            using (UltraCoreEngine.Instance.Diagnostics.Measure("TrafficDeadlockBreaker"))
             {
-                var entity = vehicleEntities[i];
-                if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity)) continue;
+                using var chunks = m_VehiclesOnLaneQuery.ToArchetypeChunkArray(Allocator.TempJob);
+                var entityType = GetEntityTypeHandle();
 
-                if (IsVehicleActuallyDeadlocked(entity, timeoutSeconds))
+                for (int c = 0; c < chunks.Length; c++)
                 {
-                    SafeVehicleDespawner.Despawn(EntityManager, entity);
-                    deadlocksRemoved++;
+                    var chunk = chunks[c];
+                    var entities = chunk.GetNativeArray(entityType);
+
+                    for (int i = 0; i < chunk.Count; i++)
+                    {
+                        var entity = entities[i];
+                        if (!EntityManager.Exists(entity) || EntityManager.HasComponent<Deleted>(entity)) continue;
+
+                        if (IsVehicleActuallyDeadlocked(entity, timeoutSeconds))
+                        {
+                            SafeVehicleDespawner.Despawn(EntityManager, entity);
+                            deadlocksRemoved++;
+                        }
+                    }
                 }
             }
 
@@ -142,11 +155,23 @@ namespace UltraPerformanceMod.Systems
                 return lane.m_Duration >= 240f && (lane.m_LaneFlags & CarLaneFlags.EndOfPath) != 0;
             }
 
+            // Check SmartCache for previously evaluated blocker chain
+            float3 currentHeadPos = float3.zero;
+            if (EntityManager.HasComponent<Transform>(entity))
+            {
+                currentHeadPos = EntityManager.GetComponentData<Transform>(entity).m_Position;
+                if (UltraCoreEngine.Instance.Cache.TryGetBlockerChain(entity, currentHeadPos, out bool isCachedImmune))
+                {
+                    if (isCachedImmune) return false;
+                }
+            }
+
             var blocker = EntityManager.GetComponentData<Blocker>(entity);
 
             // If directly waiting for normal traffic signals, crossing, bridge limit, yield or caution:
             if (IsNormalBlockerType(blocker.m_Type))
             {
+                UltraCoreEngine.Instance.Cache.SetBlockerChain(entity, true, entity, currentHeadPos, 120);
                 return false;
             }
 
@@ -178,12 +203,14 @@ namespace UltraPerformanceMod.Systems
                 // If any vehicle in the chain is boarding, loading, or disembarking, the queue is NOT deadlocked!
                 if (IsBoardingOrOperating(currentBlocker))
                 {
+                    UltraCoreEngine.Instance.Cache.SetBlockerChain(entity, true, currentBlocker, currentHeadPos, 90);
                     return false;
                 }
 
                 if (!EntityManager.HasComponent<Blocker>(currentBlocker))
                 {
                     // The lead vehicle in front is not blocked by anything! It will move.
+                    UltraCoreEngine.Instance.Cache.SetBlockerChain(entity, true, currentBlocker, currentHeadPos, 90);
                     return false;
                 }
 
@@ -192,6 +219,7 @@ namespace UltraPerformanceMod.Systems
                 {
                     // The head of the queue is waiting at a traffic light, crossing, bridge, or merging.
                     // Therefore, ALL vehicles behind it are simply in normal queue! NEVER despawn them!
+                    UltraCoreEngine.Instance.Cache.SetBlockerChain(entity, true, currentBlocker, currentHeadPos, 120);
                     return false;
                 }
 
@@ -213,7 +241,6 @@ namespace UltraPerformanceMod.Systems
             }
 
             // If the vehicle has been stationary for longer than the timeout AND its duration is very high
-            // Only if timeoutSeconds elapsed and duration is genuinely high
             if (lane.m_Duration >= timeoutSeconds && lane.m_Duration >= 90f)
             {
                 return true;
@@ -277,12 +304,12 @@ namespace UltraPerformanceMod.Systems
         {
             if (!m_TrafficAccidentEventQuery.IsEmptyIgnoreFilter)
             {
-                using var accidentEvents = m_TrafficAccidentEventQuery.ToEntityArray(Allocator.TempJob);
-                if (accidentEvents.Length > 0)
+                int count = m_TrafficAccidentEventQuery.CalculateEntityCount();
+                if (count > 0)
                 {
-                    EntityManager.AddComponent<Deleted>(accidentEvents);
-                    log.Info($"[UltraPerformanceMod] Cleared {accidentEvents.Length} active traffic accident events.");
-                    return accidentEvents.Length;
+                    EntityManager.AddComponent<Deleted>(m_TrafficAccidentEventQuery);
+                    log.Info($"[UltraPerformanceMod] Cleared {count} active traffic accident events (Zero-alloc batch).");
+                    return count;
                 }
             }
             return 0;
