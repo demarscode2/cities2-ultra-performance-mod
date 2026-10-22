@@ -67,6 +67,8 @@ namespace UltraPerformanceMod.Localization
                 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.HideNotificationIcons)), "Hide Warning / Error Icons" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.HideNotificationIcons)), "Hides all 3D floating warning icons (lack of workers, customers, high rent, etc.), clearing the skyline and saving draw calls." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableHoverOverlay)), "Hide Blue Hover Highlight Outline" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableHoverOverlay)), "Removes the blue/cyan outline border when hovering the cursor over buildings, citizens, vehicles, and objects, saving GPU post-processing passes." },
 
                 // Services
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AutoGarbage)), "Automatic Garbage Collection" },
@@ -85,6 +87,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.AutoPostService)), "Processes citizen and mailbox letters automatically without post vans on the roads." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InstantConstruction)), "Instant Building Construction" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.InstantConstruction)), "Instantly finalizes newly zoned buildings and level-up upgrades without cranes or scaffold delays." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Automatic Homeless Evacuation" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Fixes the infamous CS2 pathfind loop bug: periodically evacuates stranded homeless cims that overload pathfind threads in parks and squares." },
 
                 // Traffic
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableOutsideTaxis)), "Block Outside Taxis" },
@@ -105,11 +109,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableTreeWind)), "Eliminates foliage vertex wind deformations, reducing geometry vertex processing." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableTreeGrowth)), "Disable Tree Growth & Aging" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableTreeGrowth)), "Freezes decorative tree aging calculations, saving daily ECS cycles while keeping forestry extractors functional." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.WaterSimulation)), "Water Simulation Speed" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.WaterSimulation)), "Safely adjusts water simulation speed without fluid oscillations or typhoons: Normal (full vanilla speed), Medium (50% smooth speed), or Stopped (frozen simulation with visible water and zero CPU overhead)." },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Normal), "Normal (Vanilla Speed)" },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Media), "Medium (50% Smooth / Stable)" },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Parada), "Stopped (Paused / Static)" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.OptimizeShadows)), "Optimize Shadows & HDRP Distance" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.OptimizeShadows)), "Limits distant shadow calculation to 450m and culls micro-props from shadow passes, boosting GPU framerate in huge cities." },
 
                 // Quick Action Buttons
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CleanGarbageButton)), "Clear All City Garbage" },
@@ -138,6 +139,10 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.PurgeDummyTrafficButton)), "Purges all artificial pass-through traffic traversing your roads." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.PurgeParkedCarsButton)), "Clear Invalid Parked Cars" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.PurgeParkedCarsButton)), "Removes vehicles abandoned or illegally parked on sidewalks and curbs." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.PurgeHomelessButton)), "Evacuate Stranded Homeless Cims" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.PurgeHomelessButton)), "Instantly clears homeless households stuck in pathfinding calculation loops, restoring CPU simulation speed." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ClearStuckPedestriansButton)), "Clear Stuck Pedestrians" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ClearStuckPedestriansButton)), "Despawns pedestrians trapped with lane obstruction glitches on sidewalks or transit stops." },
 
                 // About
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ModVersionInfo)), "Version" },

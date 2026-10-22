@@ -27,7 +27,9 @@ namespace UltraPerformanceMod.Systems
         private ValueBinding<bool> m_InvisibleMotorcyclesBinding = default!;
         private ValueBinding<bool> m_DisableTreeWindBinding = default!;
         private ValueBinding<bool> m_DisableTreeGrowthBinding = default!;
-        private ValueBinding<int> m_WaterSimulationBinding = default!;
+        private ValueBinding<bool> m_DisableHoverOverlayBinding = default!;
+        private ValueBinding<bool> m_OptimizeShadowsBinding = default!;
+        private ValueBinding<bool> m_AutoEvacuateHomelessBinding = default!;
         private ValueBinding<bool> m_AutoClearDeadlocksBinding = default!;
         private ValueBinding<bool> m_HideNotificationIconsBinding = default!;
 
@@ -61,7 +63,9 @@ namespace UltraPerformanceMod.Systems
             AddBinding(m_InvisibleMotorcyclesBinding = new ValueBinding<bool>(Group, "InvisibleMotorcycles", s?.InvisibleMotorcycles ?? false));
             AddBinding(m_DisableTreeWindBinding = new ValueBinding<bool>(Group, "DisableTreeWind", s?.DisableTreeWind ?? true));
             AddBinding(m_DisableTreeGrowthBinding = new ValueBinding<bool>(Group, "DisableTreeGrowth", s?.DisableTreeGrowth ?? true));
-            AddBinding(m_WaterSimulationBinding = new ValueBinding<int>(Group, "WaterSimulation", (int)(s?.WaterSimulation ?? WaterSimulationMode.Media)));
+            AddBinding(m_DisableHoverOverlayBinding = new ValueBinding<bool>(Group, "DisableHoverOverlay", s?.DisableHoverOverlay ?? false));
+            AddBinding(m_OptimizeShadowsBinding = new ValueBinding<bool>(Group, "OptimizeShadows", s?.OptimizeShadows ?? true));
+            AddBinding(m_AutoEvacuateHomelessBinding = new ValueBinding<bool>(Group, "AutoEvacuateHomeless", s?.AutoEvacuateHomeless ?? true));
             AddBinding(m_AutoClearDeadlocksBinding = new ValueBinding<bool>(Group, "AutoClearDeadlocks", s?.AutoClearDeadlocks ?? false));
             AddBinding(m_HideNotificationIconsBinding = new ValueBinding<bool>(Group, "HideNotificationIcons", s?.HideNotificationIcons ?? false));
 
@@ -82,7 +86,6 @@ namespace UltraPerformanceMod.Systems
             AddBinding(new TriggerBinding<string>(Group, "ExecuteQuickAction", ExecuteQuickAction));
             AddBinding(new TriggerBinding<int>(Group, "SelectPreset", SelectPreset));
             AddBinding(new TriggerBinding<string, bool>(Group, "ToggleSetting", ToggleSetting));
-            AddBinding(new TriggerBinding<int>(Group, "SetWaterMode", SetWaterMode));
 
             if (s != null)
             {
@@ -138,24 +141,6 @@ namespace UltraPerformanceMod.Systems
             SetStatusMessage($"[OK] Predefini\u00E7\u00E3o '{preset}' aplicada com sucesso!");
         }
 
-        public void SetWaterMode(int modeIndex)
-        {
-            var s = Mod.Settings;
-            if (s == null) return;
-
-            s.WaterSimulation = (WaterSimulationMode)modeIndex;
-            s.ApplyAndSave();
-
-            UpdateAllBindings();
-            string modeName = s.WaterSimulation switch
-            {
-                WaterSimulationMode.Parada => "Parada (Congelada)",
-                WaterSimulationMode.Media => "M\u00E9dia (Otimizada 50%)",
-                _ => "Normal (Padr\u00E3o Vanilla)"
-            };
-            SetStatusMessage($"[OK] Velocidade da \u00E1gua ajustada: {modeName}");
-        }
-
         public void ToggleSetting(string key, bool value)
         {
             var s = Mod.Settings;
@@ -169,6 +154,9 @@ namespace UltraPerformanceMod.Systems
                 case "InvisibleMotorcycles": s.InvisibleMotorcycles = value; break;
                 case "DisableTreeWind": s.DisableTreeWind = value; break;
                 case "DisableTreeGrowth": s.DisableTreeGrowth = value; break;
+                case "DisableHoverOverlay": s.DisableHoverOverlay = value; break;
+                case "OptimizeShadows": s.OptimizeShadows = value; break;
+                case "AutoEvacuateHomeless": s.AutoEvacuateHomeless = value; break;
                 case "AutoClearDeadlocks": s.AutoClearDeadlocks = value; break;
                 case "HideNotificationIcons": s.HideNotificationIcons = value; break;
                 case "AutoGarbage": s.AutoGarbage = value; break;
@@ -265,6 +253,16 @@ namespace UltraPerformanceMod.Systems
                         SetStatusMessage($"[OK] {parked} carros abandonados em estacionamentos limpos!");
                         break;
 
+                    case "PurgeHomeless":
+                        int homeless = HomelessOptimizerSystem.Instance?.PurgeStrandedHomelessNow() ?? 0;
+                        SetStatusMessage($"[OK] {homeless} fam\u00EDlias sem-teto presas foram despachadas com sucesso!");
+                        break;
+
+                    case "ClearStuckPedestrians":
+                        int peds = StuckPedestrianOptimizerSystem.Instance?.ClearStuckPedestriansNow() ?? 0;
+                        SetStatusMessage($"[OK] {peds} pedestres travados em cal\u00E7adas/esta\u00E7\u00F5es foram liberados!");
+                        break;
+
                     default:
                         SetStatusMessage($"A\u00E7\u00E3o desconhecida: {actionKey}");
                         break;
@@ -289,7 +287,9 @@ namespace UltraPerformanceMod.Systems
             m_InvisibleMotorcyclesBinding.Update(s.InvisibleMotorcycles);
             m_DisableTreeWindBinding.Update(s.DisableTreeWind);
             m_DisableTreeGrowthBinding.Update(s.DisableTreeGrowth);
-            m_WaterSimulationBinding.Update((int)s.WaterSimulation);
+            m_DisableHoverOverlayBinding.Update(s.DisableHoverOverlay);
+            m_OptimizeShadowsBinding.Update(s.OptimizeShadows);
+            m_AutoEvacuateHomelessBinding.Update(s.AutoEvacuateHomeless);
             m_AutoClearDeadlocksBinding.Update(s.AutoClearDeadlocks);
             m_HideNotificationIconsBinding.Update(s.HideNotificationIcons);
 

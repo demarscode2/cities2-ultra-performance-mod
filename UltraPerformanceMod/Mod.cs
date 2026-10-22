@@ -14,7 +14,7 @@ namespace UltraPerformanceMod
     {
         public const string ModName = "Ultra Performance & Simulation Booster";
         public const string ModId = "UltraPerformanceMod";
-        public const string Version = "1.3.3";
+        public const string Version = "1.3.4";
 
         public static readonly ILog log = LogManager.GetLogger(ModId).SetShowsErrorsInUI(false);
         public static Setting? Settings { get; private set; }
@@ -48,6 +48,7 @@ namespace UltraPerformanceMod
                 updateSystem.UpdateAt<AnimalManagerSystem>(SystemUpdatePhase.PreCulling);
                 updateSystem.UpdateAt<TreeManagerSystem>(SystemUpdatePhase.PreCulling);
                 updateSystem.UpdateAt<NotificationIconOptimizerSystem>(SystemUpdatePhase.PreCulling);
+                updateSystem.UpdateAt<HoverOverlayOptimizerSystem>(SystemUpdatePhase.PreCulling);
 
                 // Phase: GameSimulation (Simulation, Automations & Cleanup)
                 updateSystem.UpdateAt<TrailerCleanupSystem>(SystemUpdatePhase.GameSimulation);
@@ -61,10 +62,13 @@ namespace UltraPerformanceMod
                 updateSystem.UpdateAt<DummyTrafficRemoverSystem>(SystemUpdatePhase.GameSimulation);
                 updateSystem.UpdateAt<ParkingOptimizerSystem>(SystemUpdatePhase.GameSimulation);
                 updateSystem.UpdateAt<TrafficDeadlockBreakerSystem>(SystemUpdatePhase.GameSimulation);
+                updateSystem.UpdateAt<HomelessOptimizerSystem>(SystemUpdatePhase.GameSimulation);
+                updateSystem.UpdateAt<StuckPedestrianOptimizerSystem>(SystemUpdatePhase.GameSimulation);
                 updateSystem.UpdateAt<WaterSimulationOptimizerSystem>(SystemUpdatePhase.GameSimulation);
 
                 // Phase: MainLoop (Graphics & Volumes)
                 updateSystem.UpdateAt<VisualEffectsOptimizerSystem>(SystemUpdatePhase.MainLoop);
+                updateSystem.UpdateAt<ShadowOptimizerSystem>(SystemUpdatePhase.MainLoop);
 
                 // Phase: UIUpdate (In-Game HUD Toolbar & Quick Action Panel)
                 updateSystem.UpdateAt<InGameUISystem>(SystemUpdatePhase.UIUpdate);

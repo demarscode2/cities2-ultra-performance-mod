@@ -3,7 +3,7 @@
  *
  * Id: UltraPerformanceMod
  * Author: Antigravity
- * Version: 1.3.3
+ * Version: 1.3.4
  * Dependencies: 
  */
 
@@ -25,7 +25,9 @@ const invisibleBicycles$ = api.bindValue(Group, "InvisibleBicycles", false);
 const invisibleMotorcycles$ = api.bindValue(Group, "InvisibleMotorcycles", false);
 const disableTreeWind$ = api.bindValue(Group, "DisableTreeWind", true);
 const disableTreeGrowth$ = api.bindValue(Group, "DisableTreeGrowth", true);
-const waterSimulation$ = api.bindValue(Group, "WaterSimulation", 1);
+const disableHoverOverlay$ = api.bindValue(Group, "DisableHoverOverlay", false);
+const optimizeShadows$ = api.bindValue(Group, "OptimizeShadows", true);
+const autoEvacuateHomeless$ = api.bindValue(Group, "AutoEvacuateHomeless", true);
 const autoClearDeadlocks$ = api.bindValue(Group, "AutoClearDeadlocks", false);
 const hideNotificationIcons$ = api.bindValue(Group, "HideNotificationIcons", false);
 
@@ -97,6 +99,14 @@ const renderCardIcon = (key) => {
         case "CompleteConstruction":
             return React.createElement("svg", { viewBox: "0 0 24 24", width: "18rem", height: "18rem", fill: "#8d6e63" },
                 React.createElement("path", { d: "M12 3L2 12h3v8h14v-8h3L12 3zm1 14h-2v-4h2v4zm0-6h-2V9h2v2z" })
+            );
+        case "PurgeHomeless":
+            return React.createElement("svg", { viewBox: "0 0 24 24", width: "18rem", height: "18rem", fill: "#e91e63" },
+                React.createElement("path", { d: "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" })
+            );
+        case "ClearStuckPedestrians":
+            return React.createElement("svg", { viewBox: "0 0 24 24", width: "18rem", height: "18rem", fill: "#00e676" },
+                React.createElement("path", { d: "M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z" })
             );
         default:
             return React.createElement("svg", { viewBox: "0 0 24 24", width: "18rem", height: "18rem", fill: "#4287f5" },
@@ -175,7 +185,9 @@ const FloatingPanel = () => {
         const invisibleMotorcycles = api.useValue(invisibleMotorcycles$);
         const disableTreeWind = api.useValue(disableTreeWind$);
         const disableTreeGrowth = api.useValue(disableTreeGrowth$);
-        const waterSimulation = api.useValue(waterSimulation$);
+        const disableHoverOverlay = api.useValue(disableHoverOverlay$);
+        const optimizeShadows = api.useValue(optimizeShadows$);
+        const autoEvacuateHomeless = api.useValue(autoEvacuateHomeless$);
         const autoClearDeadlocks = api.useValue(autoClearDeadlocks$);
         const hideNotificationIcons = api.useValue(hideNotificationIcons$);
 
@@ -376,6 +388,16 @@ const FloatingPanel = () => {
                                         title: "Concluir Todas as Obras",
                                         desc: "Finaliza instantaneamente pr\u00E9dios em constru\u00E7\u00E3o",
                                         actionKey: "CompleteConstruction"
+                                    }),
+                                    React.createElement(ActionCard, {
+                                        title: "Despachar Sem-Teto Presos",
+                                        desc: "Zera fam\u00EDlias presas em loops de pathfinding (alivia CPU)",
+                                        actionKey: "PurgeHomeless"
+                                    }),
+                                    React.createElement(ActionCard, {
+                                        title: "Desobstruir Pedestres Travados",
+                                        desc: "Desbloqueia pedestres travados em cal\u00E7adas e esta\u00E7\u00F5es",
+                                        actionKey: "ClearStuckPedestrians"
                                     })
                                 )
                             )
@@ -420,6 +442,7 @@ const FloatingPanel = () => {
                                     { label: "Ocultar Ve\u00EDculos Gerais", sub: "Oculta carros, caminh\u00F5es e transportes", key: "InvisibleVehicles", val: invisibleVehicles },
                                     { label: "Ocultar Bicicletas", sub: "Oculta ciclistas individualmente", key: "InvisibleBicycles", val: invisibleBicycles },
                                     { label: "Ocultar Motocicletas", sub: "Oculta motociclistas individualmente", key: "InvisibleMotorcycles", val: invisibleMotorcycles },
+                                    { label: "Ocultar Borda Azul ao Passar Mouse", sub: "Remove o contorno / highlight azul ao pairar sobre itens", key: "DisableHoverOverlay", val: disableHoverOverlay },
                                     { label: "Desativar Vento nas \u00C1rvores", sub: "Elimina oscila\u00E7\u00E3o e c\u00E1lculos de vento nas copas", key: "DisableTreeWind", val: disableTreeWind },
                                     { label: "Desativar Crescimento de \u00C1rvores", sub: "Pausa envelhecimento de \u00E1rvores poupando CPU", key: "DisableTreeGrowth", val: disableTreeGrowth },
                                     { label: "Ocultar \u00CDcones de Alerta", sub: "Oculta bal\u00F5es de falta de clientes, aluguel, etc.", key: "HideNotificationIcons", val: hideNotificationIcons },
@@ -441,28 +464,51 @@ const FloatingPanel = () => {
                                     )
                                 )
                             ),
-                            // Water Simulation
+                            // Advanced GPU Graphics Optimization
                             React.createElement(
                                 "div",
                                 { className: "upm-group-section" },
-                                React.createElement("div", { className: "upm-group-title" }, "Velocidade da \u00C1gua (Sem Tuf\u00F5es / Inunda\u00E7\u00F5es)"),
-                                React.createElement(
-                                    "div",
-                                    { className: "upm-segmented-bar" },
-                                    [
-                                        { id: 0, label: "Normal" },
-                                        { id: 1, label: "M\u00E9dia" },
-                                        { id: 2, label: "Parada" }
-                                    ].map((w) =>
+                                React.createElement("div", { className: "upm-group-title" }, "Otimiza\u00E7\u00F5es Gr\u00E1ficas Avan\u00E7adas (GPU)"),
+                                [
+                                    { label: "Otimizar Sombras & Dist\u00E2ncia HDRP", sub: "Limita sombras a 450m e filtra micro-props (salto brutal de FPS)", key: "OptimizeShadows", val: optimizeShadows }
+                                ].map((item) =>
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-row", key: item.key },
                                         React.createElement(
-                                            "button",
-                                            {
-                                                key: w.id,
-                                                className: "upm-seg-btn" + (waterSimulation === w.id ? " active" : ""),
-                                                onClick: () => api.trigger(Group, "SetWaterMode", w.id)
-                                            },
-                                            w.label
-                                        )
+                                            "div",
+                                            { className: "upm-row-text" },
+                                            React.createElement("span", { className: "upm-row-label" }, item.label),
+                                            React.createElement("span", { className: "upm-row-sub" }, item.sub)
+                                        ),
+                                        React.createElement(ToggleSwitch, {
+                                            checked: item.val,
+                                            onChange: (val) => api.trigger(Group, "ToggleSetting", item.key, val)
+                                        })
+                                    )
+                                )
+                            ),
+                            // City Simulation CPU Automations
+                            React.createElement(
+                                "div",
+                                { className: "upm-group-section" },
+                                React.createElement("div", { className: "upm-group-title" }, "Automa\u00E7\u00F5es Urbanas (Al\u00EDvio de CPU)"),
+                                [
+                                    { label: "Evacua\u00E7\u00E3o Autom\u00E1tica de Sem-Teto", sub: "Despacha periodicamente sem-teto que travam filas de pathfinding", key: "AutoEvacuateHomeless", val: autoEvacuateHomeless }
+                                ].map((item) =>
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-row", key: item.key },
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-row-text" },
+                                            React.createElement("span", { className: "upm-row-label" }, item.label),
+                                            React.createElement("span", { className: "upm-row-sub" }, item.sub)
+                                        ),
+                                        React.createElement(ToggleSwitch, {
+                                            checked: item.val,
+                                            onChange: (val) => api.trigger(Group, "ToggleSetting", item.key, val)
+                                        })
                                     )
                                 )
                             )
@@ -495,8 +541,13 @@ const FloatingPanel = () => {
                                     React.createElement("br"),
                                     React.createElement("br"),
                                     "\u2022 ",
-                                    React.createElement("b", null, "Simula\u00E7\u00E3o de \u00C1gua:"),
-                                    " Em cidades gigantescas, a simula\u00E7\u00E3o de \u00E1gua consome muitos threads da CPU. Usar o modo 'Otimizada' ou 'Congelada' eleva o FPS instantaneamente."
+                                    React.createElement("b", null, "Sem-Teto & Pathfinding:"),
+                                    " Em grandes cidades, cidad\u00E3os sem abrigo entram em loops infinitos tentando achar parques ou sa\u00EDdas. O bot\u00E3o 'Despachar Sem-Teto' libera milhares de threads da CPU instantaneamente.",
+                                    React.createElement("br"),
+                                    React.createElement("br"),
+                                    "\u2022 ",
+                                    React.createElement("b", null, "Borda Azul / Highlight:"),
+                                    " O mod permite desativar a borda azul ao passar o mouse em objetos, poupando passos inteiros de p\u00F3s-processamento da GPU."
                                 )
                             )
                         )

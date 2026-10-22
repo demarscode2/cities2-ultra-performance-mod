@@ -67,6 +67,8 @@ namespace UltraPerformanceMod.Localization
                 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.HideNotificationIcons)), "Ocultar Ícones de Erro / Alerta" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.HideNotificationIcons)), "Oculta todos os ícones 3D flutuantes (falta de trabalhadores, clientes, aluguel alto, etc.) limpando o horizonte da cidade e poupando renderização." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableHoverOverlay)), "Ocultar Borda Azul ao Passar Mouse" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableHoverOverlay)), "Remove a borda / highlight azul ao passar o cursor sobre edifícios, cidadãos, veículos e objetos, economizando passagens de renderização da GPU." },
 
                 // Serviços
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AutoGarbage)), "Coleta Automática de Lixo" },
@@ -85,6 +87,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.AutoPostService)), "Processa toda correspondência de residências e caixas de correio sem furgões postais nas ruas." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InstantConstruction)), "Crescimento Instantâneo de Prédios" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.InstantConstruction)), "Conclui construções e upgrades de nível instantaneamente, sem guindastes ou andaimes demorados." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Evacuação Automática de Sem-Teto" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Resolve o infame travamento de CPU do CS2: despacha periodicamente famílias sem-teto que entram em loops infinitos de busca de abrigo." },
 
                 // Trânsito
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableOutsideTaxis)), "Bloquear Táxis Externos" },
@@ -105,11 +109,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableTreeWind)), "Zera a deformação de vértices por vento na folhagem, reduzindo trabalho de shaders de geometria." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableTreeGrowth)), "Desativar Crescimento / Envelhecimento de Árvores" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DisableTreeGrowth)), "Pausa o sistema de envelhecimento e decaimento das árvores decorativas, poupando processamento diário no ECS sem afetar as indústrias de silvicultura." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.WaterSimulation)), "Velocidade da Simulação de Água" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.WaterSimulation)), "Ajusta com segurança a velocidade do fluxo de água sem risco de oscilações ou tufões: Normal (velocidade padrão do jogo), Média (50% de velocidade com transição suave), ou Parada (simulação pausada com água visível e zero uso de CPU)." },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Normal), "Normal (Padrão Vanilla)" },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Media), "Média (50% Suave / Estável)" },
-                { m_Setting.GetEnumValueLocaleID(WaterSimulationMode.Parada), "Parada (Pausada / Leve)" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.OptimizeShadows)), "Otimizar Sombras & Alcance HDRP" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.OptimizeShadows)), "Limita sombras distantes a 450 metros e filtra micro-props em sombras, dobrando a fluidez da GPU em megalópoles sem perda visual." },
 
                 // Botões de Ações Rápidas
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CleanGarbageButton)), "Esvaziar Todo o Lixo da Cidade" },
@@ -138,6 +139,10 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.PurgeDummyTrafficButton)), "Remove todos os carros artificiais de travessia do mapa." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.PurgeParkedCarsButton)), "Limpar Carros Estacionados Inválidos" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.PurgeParkedCarsButton)), "Remove veículos abandonados ou mal estacionados." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.PurgeHomelessButton)), "Despachar Famílias Sem-Teto Presas" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.PurgeHomelessButton)), "Evacua instantaneamente todas as famílias sem-teto acampadas em praças ou presas em cálculos de caminho, aliviando o uso de CPU." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ClearStuckPedestriansButton)), "Desobstruir Pedestres Travados" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ClearStuckPedestriansButton)), "Libera pedestres travados em calçadas, faixas ou estações de metrô." },
 
                 // Sobre
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ModVersionInfo)), "Versão" },

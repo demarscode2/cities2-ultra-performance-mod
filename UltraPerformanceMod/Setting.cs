@@ -16,13 +16,6 @@ namespace UltraPerformanceMod
         Maximum = 3
     }
 
-    public enum WaterSimulationMode
-    {
-        Normal = 0,
-        Media = 1,
-        Parada = 2
-    }
-
     [FileLocation("ModsSettings/UltraPerformanceMod/UltraPerformanceMod")]
     [SettingsUITabOrder(TabPresets, TabVisibility, TabServices, TabTraffic, TabGraphics, TabActions, TabAbout)]
     [SettingsUIGroupOrder(GroupPresets, GroupVisibility, GroupServices, GroupTraffic, GroupGraphics, GroupActions, GroupAbout)]
@@ -54,6 +47,7 @@ namespace UltraPerformanceMod
         private bool m_InvisibleMotorcycles = false;
         private AnimalHandlingMode m_AnimalHandling = AnimalHandlingMode.Invisible;
         private bool m_HideNotificationIcons = false;
+        private bool m_DisableHoverOverlay = false;
 
         // Services
         private bool m_AutoGarbage = true;
@@ -64,6 +58,7 @@ namespace UltraPerformanceMod
         private bool m_AutoAmbulance = true;
         private bool m_AutoPostService = true;
         private bool m_InstantConstruction = false;
+        private bool m_AutoEvacuateHomeless = true;
 
         // Traffic & Pathfinding
         private bool m_DisableOutsideTaxis = true;
@@ -76,7 +71,7 @@ namespace UltraPerformanceMod
         private bool m_DisableHeavyEffects = true;
         private bool m_DisableTreeWind = true;
         private bool m_DisableTreeGrowth = true;
-        private WaterSimulationMode m_WaterSimulation = WaterSimulationMode.Media;
+        private bool m_OptimizeShadows = true;
 
         public event Action? OnSettingChanged;
 
@@ -201,6 +196,22 @@ namespace UltraPerformanceMod
             }
         }
 
+        [SettingsUISection(TabVisibility, GroupVisibility)]
+        public bool DisableHoverOverlay
+        {
+            get => m_DisableHoverOverlay;
+            set
+            {
+                if (m_DisableHoverOverlay != value)
+                {
+                    m_DisableHoverOverlay = value;
+                    m_Preset = PerformancePreset.Custom;
+                    HoverOverlayOptimizerSystem.Instance?.SetOutlinesPassEnabled(!value);
+                    ApplyAndSave();
+                }
+            }
+        }
+
         // --- SERVICES TAB ---
         [SettingsUISection(TabServices, GroupServices)]
         public bool AutoGarbage
@@ -316,6 +327,21 @@ namespace UltraPerformanceMod
                 if (m_InstantConstruction != value)
                 {
                     m_InstantConstruction = value;
+                    m_Preset = PerformancePreset.Custom;
+                    ApplyAndSave();
+                }
+            }
+        }
+
+        [SettingsUISection(TabServices, GroupServices)]
+        public bool AutoEvacuateHomeless
+        {
+            get => m_AutoEvacuateHomeless;
+            set
+            {
+                if (m_AutoEvacuateHomeless != value)
+                {
+                    m_AutoEvacuateHomeless = value;
                     m_Preset = PerformancePreset.Custom;
                     ApplyAndSave();
                 }
@@ -446,15 +472,16 @@ namespace UltraPerformanceMod
         }
 
         [SettingsUISection(TabGraphics, GroupGraphics)]
-        public WaterSimulationMode WaterSimulation
+        public bool OptimizeShadows
         {
-            get => m_WaterSimulation;
+            get => m_OptimizeShadows;
             set
             {
-                if (m_WaterSimulation != value)
+                if (m_OptimizeShadows != value)
                 {
-                    m_WaterSimulation = value;
+                    m_OptimizeShadows = value;
                     m_Preset = PerformancePreset.Custom;
+                    ShadowOptimizerSystem.ApplyShadowOptimization(value);
                     ApplyAndSave();
                 }
             }
@@ -604,9 +631,31 @@ namespace UltraPerformanceMod
             }
         }
 
+        [SettingsUIButton]
+        [SettingsUISection(TabActions, GroupActions)]
+        public bool PurgeHomelessButton
+        {
+            set
+            {
+                Mod.log.Info("[UltraPerformanceMod] Action: PurgeHomelessNow triggered.");
+                HomelessOptimizerSystem.Instance?.PurgeStrandedHomelessNow();
+            }
+        }
+
+        [SettingsUIButton]
+        [SettingsUISection(TabActions, GroupActions)]
+        public bool ClearStuckPedestriansButton
+        {
+            set
+            {
+                Mod.log.Info("[UltraPerformanceMod] Action: ClearStuckPedestriansNow triggered.");
+                StuckPedestrianOptimizerSystem.Instance?.ClearStuckPedestriansNow();
+            }
+        }
+
         // --- ABOUT TAB ---
         [SettingsUISection(TabAbout, GroupAbout)]
-        public string ModVersionInfo => "Ultra Performance & Simulation Booster v1.3.3 (Paradox Mods Ready)";
+        public string ModVersionInfo => "Ultra Performance & Simulation Booster v1.3.4 (Paradox Mods Ready)";
 
         [SettingsUISection(TabAbout, GroupAbout)]
         public string ModStatusInfo => $"Current Preset: {m_Preset} | Simulation Optimizations Active";
@@ -622,6 +671,7 @@ namespace UltraPerformanceMod
                     m_InvisibleMotorcycles = false;
                     m_AnimalHandling = AnimalHandlingMode.KeepVanilla;
                     m_HideNotificationIcons = false;
+                    m_DisableHoverOverlay = false;
                     m_AutoGarbage = true;
                     m_AutoDeathcare = true;
                     m_AutoRoadMaintenance = true;
@@ -630,6 +680,7 @@ namespace UltraPerformanceMod
                     m_AutoAmbulance = false;
                     m_AutoPostService = true;
                     m_InstantConstruction = false;
+                    m_AutoEvacuateHomeless = false;
                     m_DisableOutsideTaxis = true;
                     m_DisableDummyTraffic = true;
                     m_OptimizeParking = true;
@@ -638,7 +689,7 @@ namespace UltraPerformanceMod
                     m_DisableHeavyEffects = false;
                     m_DisableTreeWind = false;
                     m_DisableTreeGrowth = false;
-                    m_WaterSimulation = WaterSimulationMode.Normal;
+                    m_OptimizeShadows = false;
                     break;
 
                 case PerformancePreset.Medium:
@@ -648,6 +699,7 @@ namespace UltraPerformanceMod
                     m_InvisibleMotorcycles = false;
                     m_AnimalHandling = AnimalHandlingMode.Invisible;
                     m_HideNotificationIcons = true;
+                    m_DisableHoverOverlay = true;
                     m_AutoGarbage = true;
                     m_AutoDeathcare = true;
                     m_AutoRoadMaintenance = true;
@@ -656,6 +708,7 @@ namespace UltraPerformanceMod
                     m_AutoAmbulance = true;
                     m_AutoPostService = true;
                     m_InstantConstruction = false;
+                    m_AutoEvacuateHomeless = true;
                     m_DisableOutsideTaxis = true;
                     m_DisableDummyTraffic = true;
                     m_OptimizeParking = true;
@@ -664,7 +717,7 @@ namespace UltraPerformanceMod
                     m_DisableHeavyEffects = true;
                     m_DisableTreeWind = true;
                     m_DisableTreeGrowth = true;
-                    m_WaterSimulation = WaterSimulationMode.Media;
+                    m_OptimizeShadows = true;
                     break;
 
                 case PerformancePreset.Maximum:
@@ -674,6 +727,7 @@ namespace UltraPerformanceMod
                     m_InvisibleMotorcycles = true;
                     m_AnimalHandling = AnimalHandlingMode.RemoveCompletely;
                     m_HideNotificationIcons = true;
+                    m_DisableHoverOverlay = true;
                     m_AutoGarbage = true;
                     m_AutoDeathcare = true;
                     m_AutoRoadMaintenance = true;
@@ -682,6 +736,7 @@ namespace UltraPerformanceMod
                     m_AutoAmbulance = true;
                     m_AutoPostService = true;
                     m_InstantConstruction = true;
+                    m_AutoEvacuateHomeless = true;
                     m_DisableOutsideTaxis = true;
                     m_DisableDummyTraffic = true;
                     m_OptimizeParking = true;
@@ -690,7 +745,7 @@ namespace UltraPerformanceMod
                     m_DisableHeavyEffects = true;
                     m_DisableTreeWind = true;
                     m_DisableTreeGrowth = true;
-                    m_WaterSimulation = WaterSimulationMode.Parada;
+                    m_OptimizeShadows = true;
                     break;
 
                 case PerformancePreset.Custom:
@@ -698,6 +753,8 @@ namespace UltraPerformanceMod
             }
 
             VisualEffectsOptimizerSystem.ApplyEffectsOptimization(m_DisableHeavyEffects);
+            ShadowOptimizerSystem.ApplyShadowOptimization(m_OptimizeShadows);
+            HoverOverlayOptimizerSystem.Instance?.SetOutlinesPassEnabled(!m_DisableHoverOverlay);
         }
 
         public override void SetDefaults()
