@@ -65,16 +65,6 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetEnumValueLocaleID(AnimalHandlingMode.Invisible), "Invisíveis (Sem Custo de Render)" },
                 { m_Setting.GetEnumValueLocaleID(AnimalHandlingMode.RemoveCompletely), "Remover Completamente (Máximo Desempenho)" },
                 
-                // Árvores Granulares
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleWildTrees)), "Árvores na Natureza (Fora de Construções)" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleWildTrees)), "Oculta árvores livres, matas e florestas espalhadas pelo relevo do mapa fora de lotes urbanos, liberando milhares de draw calls." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleBuildingTrees)), "Árvores em Construções e Parques" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleBuildingTrees)), "Oculta árvores pertencentes a lotes de edifícios, praças públicas e áreas de lazer." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleRoadTrees)), "Árvores em Vias e Calçadas" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleRoadTrees)), "Oculta árvores decorativas de canteiros centrais, calçadas de avenidas e rodovias." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleTrees)), "Todas as Árvores Invisíveis" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleTrees)), "Oculta todas as árvores do mapa de uma só vez para máximo ganho de FPS." },
-                
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.HideNotificationIcons)), "Ocultar Ícones de Erro / Alerta" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.HideNotificationIcons)), "Oculta todos os ícones 3D flutuantes (falta de trabalhadores, clientes, aluguel alto, etc.) limpando o horizonte da cidade e poupando renderização." },
 

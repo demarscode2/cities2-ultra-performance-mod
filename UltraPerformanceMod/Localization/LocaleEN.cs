@@ -65,16 +65,6 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetEnumValueLocaleID(AnimalHandlingMode.Invisible), "Invisible (Zero Render Cost)" },
                 { m_Setting.GetEnumValueLocaleID(AnimalHandlingMode.RemoveCompletely), "Remove Completely (Maximum Performance)" },
                 
-                // Granular Trees
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleWildTrees)), "Wild Nature Trees (Outside Lots)" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleWildTrees)), "Hides wild nature trees and forests across the landscape outside of lots, saving thousands of GPU draw calls." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleBuildingTrees)), "Building & Park Trees" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleBuildingTrees)), "Hides decorative trees attached to building lots, parks, and plazas." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleRoadTrees)), "Roadside & Street Trees" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleRoadTrees)), "Hides decorative trees attached to road medians, streets, and avenues." },
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.InvisibleTrees)), "All Trees Invisible" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.InvisibleTrees)), "Hides all trees across the entire map at once for maximum FPS gain." },
-                
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.HideNotificationIcons)), "Hide Warning / Error Icons" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.HideNotificationIcons)), "Hides all 3D floating warning icons (lack of workers, customers, high rent, etc.), clearing the skyline and saving draw calls." },
 

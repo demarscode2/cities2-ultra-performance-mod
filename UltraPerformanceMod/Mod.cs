@@ -14,7 +14,7 @@ namespace UltraPerformanceMod
     {
         public const string ModName = "Ultra Performance & Simulation Booster";
         public const string ModId = "UltraPerformanceMod";
-        public const string Version = "1.3.0";
+        public const string Version = "1.3.3";
 
         public static readonly ILog log = LogManager.GetLogger(ModId).SetShowsErrorsInUI(false);
         public static Setting? Settings { get; private set; }

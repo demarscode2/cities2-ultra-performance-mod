@@ -3,7 +3,7 @@
  *
  * Id: UltraPerformanceMod
  * Author: Antigravity
- * Version: 1.3.2
+ * Version: 1.3.3
  * Dependencies: 
  */
 
@@ -23,11 +23,8 @@ const invisibleNPCs$ = api.bindValue(Group, "InvisibleNPCs", false);
 const invisibleVehicles$ = api.bindValue(Group, "InvisibleVehicles", false);
 const invisibleBicycles$ = api.bindValue(Group, "InvisibleBicycles", false);
 const invisibleMotorcycles$ = api.bindValue(Group, "InvisibleMotorcycles", false);
-const invisibleTrees$ = api.bindValue(Group, "InvisibleTrees", false);
-const invisibleWildTrees$ = api.bindValue(Group, "InvisibleWildTrees", false);
-const invisibleBuildingTrees$ = api.bindValue(Group, "InvisibleBuildingTrees", false);
-const invisibleRoadTrees$ = api.bindValue(Group, "InvisibleRoadTrees", false);
 const disableTreeWind$ = api.bindValue(Group, "DisableTreeWind", true);
+const disableTreeGrowth$ = api.bindValue(Group, "DisableTreeGrowth", true);
 const waterSimulation$ = api.bindValue(Group, "WaterSimulation", 1);
 const autoClearDeadlocks$ = api.bindValue(Group, "AutoClearDeadlocks", false);
 const hideNotificationIcons$ = api.bindValue(Group, "HideNotificationIcons", false);
@@ -176,11 +173,8 @@ const FloatingPanel = () => {
         const invisibleVehicles = api.useValue(invisibleVehicles$);
         const invisibleBicycles = api.useValue(invisibleBicycles$);
         const invisibleMotorcycles = api.useValue(invisibleMotorcycles$);
-        const invisibleTrees = api.useValue(invisibleTrees$);
-        const invisibleWildTrees = api.useValue(invisibleWildTrees$);
-        const invisibleBuildingTrees = api.useValue(invisibleBuildingTrees$);
-        const invisibleRoadTrees = api.useValue(invisibleRoadTrees$);
         const disableTreeWind = api.useValue(disableTreeWind$);
+        const disableTreeGrowth = api.useValue(disableTreeGrowth$);
         const waterSimulation = api.useValue(waterSimulation$);
         const autoClearDeadlocks = api.useValue(autoClearDeadlocks$);
         const hideNotificationIcons = api.useValue(hideNotificationIcons$);
@@ -426,10 +420,8 @@ const FloatingPanel = () => {
                                     { label: "Ocultar Ve\u00EDculos Gerais", sub: "Oculta carros, caminh\u00F5es e transportes", key: "InvisibleVehicles", val: invisibleVehicles },
                                     { label: "Ocultar Bicicletas", sub: "Oculta ciclistas individualmente", key: "InvisibleBicycles", val: invisibleBicycles },
                                     { label: "Ocultar Motocicletas", sub: "Oculta motociclistas individualmente", key: "InvisibleMotorcycles", val: invisibleMotorcycles },
-                                    { label: "Ocultar \u00C1rvores na Natureza", sub: "Oculta matas e florestas fora de constru\u00E7\u00F5es", key: "InvisibleWildTrees", val: invisibleWildTrees },
-                                    { label: "Ocultar \u00C1rvores de Pr\u00E9dios/Parques", sub: "Oculta \u00E1rvores de pra\u00E7as, parques e lotes", key: "InvisibleBuildingTrees", val: invisibleBuildingTrees },
-                                    { label: "Ocultar \u00C1rvores de Vias/Cal\u00E7adas", sub: "Oculta \u00E1rvores em canteiros e cal\u00E7adas", key: "InvisibleRoadTrees", val: invisibleRoadTrees },
-                                    { label: "Desativar Vento nas \u00C1rvores", sub: "Elimina anima\u00E7\u00F5es de vento nas copas", key: "DisableTreeWind", val: disableTreeWind },
+                                    { label: "Desativar Vento nas \u00C1rvores", sub: "Elimina oscila\u00E7\u00E3o e c\u00E1lculos de vento nas copas", key: "DisableTreeWind", val: disableTreeWind },
+                                    { label: "Desativar Crescimento de \u00C1rvores", sub: "Pausa envelhecimento de \u00E1rvores poupando CPU", key: "DisableTreeGrowth", val: disableTreeGrowth },
                                     { label: "Ocultar \u00CDcones de Alerta", sub: "Oculta bal\u00F5es de falta de clientes, aluguel, etc.", key: "HideNotificationIcons", val: hideNotificationIcons },
                                     { label: "Desobstru\u00E7\u00E3o Autom\u00E1tica de Tr\u00E2nsito", sub: "Despacha automaticamente carros em impasse circular", key: "AutoClearDeadlocks", val: autoClearDeadlocks }
                                 ].map((item) =>

@@ -53,9 +53,6 @@ namespace UltraPerformanceMod
         private bool m_InvisibleBicycles = false;
         private bool m_InvisibleMotorcycles = false;
         private AnimalHandlingMode m_AnimalHandling = AnimalHandlingMode.Invisible;
-        private bool m_InvisibleWildTrees = false;
-        private bool m_InvisibleBuildingTrees = false;
-        private bool m_InvisibleRoadTrees = false;
         private bool m_HideNotificationIcons = false;
 
         // Services
@@ -186,65 +183,6 @@ namespace UltraPerformanceMod
                     m_Preset = PerformancePreset.Custom;
                     ApplyAndSave();
                 }
-            }
-        }
-
-        [SettingsUISection(TabVisibility, GroupVisibility)]
-        public bool InvisibleWildTrees
-        {
-            get => m_InvisibleWildTrees;
-            set
-            {
-                if (m_InvisibleWildTrees != value)
-                {
-                    m_InvisibleWildTrees = value;
-                    m_Preset = PerformancePreset.Custom;
-                    ApplyAndSave();
-                }
-            }
-        }
-
-        [SettingsUISection(TabVisibility, GroupVisibility)]
-        public bool InvisibleBuildingTrees
-        {
-            get => m_InvisibleBuildingTrees;
-            set
-            {
-                if (m_InvisibleBuildingTrees != value)
-                {
-                    m_InvisibleBuildingTrees = value;
-                    m_Preset = PerformancePreset.Custom;
-                    ApplyAndSave();
-                }
-            }
-        }
-
-        [SettingsUISection(TabVisibility, GroupVisibility)]
-        public bool InvisibleRoadTrees
-        {
-            get => m_InvisibleRoadTrees;
-            set
-            {
-                if (m_InvisibleRoadTrees != value)
-                {
-                    m_InvisibleRoadTrees = value;
-                    m_Preset = PerformancePreset.Custom;
-                    ApplyAndSave();
-                }
-            }
-        }
-
-        [SettingsUISection(TabVisibility, GroupVisibility)]
-        public bool InvisibleTrees
-        {
-            get => m_InvisibleWildTrees && m_InvisibleBuildingTrees && m_InvisibleRoadTrees;
-            set
-            {
-                m_InvisibleWildTrees = value;
-                m_InvisibleBuildingTrees = value;
-                m_InvisibleRoadTrees = value;
-                m_Preset = PerformancePreset.Custom;
-                ApplyAndSave();
             }
         }
 
@@ -668,7 +606,7 @@ namespace UltraPerformanceMod
 
         // --- ABOUT TAB ---
         [SettingsUISection(TabAbout, GroupAbout)]
-        public string ModVersionInfo => "Ultra Performance & Simulation Booster v1.3.2 (Paradox Mods Ready)";
+        public string ModVersionInfo => "Ultra Performance & Simulation Booster v1.3.3 (Paradox Mods Ready)";
 
         [SettingsUISection(TabAbout, GroupAbout)]
         public string ModStatusInfo => $"Current Preset: {m_Preset} | Simulation Optimizations Active";
@@ -683,9 +621,6 @@ namespace UltraPerformanceMod
                     m_InvisibleBicycles = false;
                     m_InvisibleMotorcycles = false;
                     m_AnimalHandling = AnimalHandlingMode.KeepVanilla;
-                    m_InvisibleWildTrees = false;
-                    m_InvisibleBuildingTrees = false;
-                    m_InvisibleRoadTrees = false;
                     m_HideNotificationIcons = false;
                     m_AutoGarbage = true;
                     m_AutoDeathcare = true;
@@ -712,9 +647,6 @@ namespace UltraPerformanceMod
                     m_InvisibleBicycles = false;
                     m_InvisibleMotorcycles = false;
                     m_AnimalHandling = AnimalHandlingMode.Invisible;
-                    m_InvisibleWildTrees = false;
-                    m_InvisibleBuildingTrees = false;
-                    m_InvisibleRoadTrees = false;
                     m_HideNotificationIcons = true;
                     m_AutoGarbage = true;
                     m_AutoDeathcare = true;
@@ -741,9 +673,6 @@ namespace UltraPerformanceMod
                     m_InvisibleBicycles = true;
                     m_InvisibleMotorcycles = true;
                     m_AnimalHandling = AnimalHandlingMode.RemoveCompletely;
-                    m_InvisibleWildTrees = true;
-                    m_InvisibleBuildingTrees = true;
-                    m_InvisibleRoadTrees = true;
                     m_HideNotificationIcons = true;
                     m_AutoGarbage = true;
                     m_AutoDeathcare = true;
