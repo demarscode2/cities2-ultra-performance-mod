@@ -3,7 +3,7 @@
 	<!-- Paradox Mods ID -->
 	<ModId Value="164241" />
 	<DisplayName Value="Ultra Performance &amp; Simulation Booster (Beta)" />
-	<ShortDescription Value="Maximize FPS and eliminate simulation/pathfinding lag with UltraCore Engine, Ultra Visibility Engine (UVE), Multi-Tier LOD Scaling, Dynamic Frustum Far-Clip, Homeless Loop Breaker, HDRP Shadow Optimizer, and 16 1-Click Cleanups." />
+	<ShortDescription Value="Maximize FPS &amp; simulation speed with UltraCore, Ultra Visibility Engine (UVE), multi-tier LOD scaling, dynamic far-clip, homeless unblocker, HDRP shadows &amp; 16 1-click cleanups." />
 	<LongDescription>
 # ⚡ Ultra Performance &amp; Simulation Booster (Beta v1.4.0)
 The definitive, all-in-one performance and simulation booster mod for Cities: Skylines II. Engineered on the native DOTS / ECS architecture to eliminate CPU simulation delays, reduce pathfinding overhead, and maximize GPU FPS in megalopolises with 700,000 to 1,000,000+ citizens.
