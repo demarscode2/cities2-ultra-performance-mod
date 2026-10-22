@@ -80,6 +80,9 @@ namespace UltraPerformanceMod
         private bool m_DisableTreeGrowth = true;
         private bool m_OptimizeShadows = true;
         private TreeLodMode m_TreeLodMode = TreeLodMode.Vanilla;
+        private UltraVisibilityMode m_UltraVisibilityMode = UltraVisibilityMode.Vanilla;
+        private bool m_DynamicFarClip = true;
+        private bool m_StrictMeshMemory = true;
 
         public event Action? OnSettingChanged;
 
@@ -553,6 +556,54 @@ namespace UltraPerformanceMod
             }
         }
 
+        [SettingsUISection(TabGraphics, GroupGraphics)]
+        public UltraVisibilityMode VisibilityMode
+        {
+            get => m_UltraVisibilityMode;
+            set
+            {
+                if (m_UltraVisibilityMode != value)
+                {
+                    m_UltraVisibilityMode = value;
+                    m_Preset = PerformancePreset.Custom;
+                    UltraVisibilityEngineSystem.Instance?.ApplyVisibilityMode(value, m_DynamicFarClip, m_StrictMeshMemory);
+                    ApplyAndSave();
+                }
+            }
+        }
+
+        [SettingsUISection(TabGraphics, GroupGraphics)]
+        public bool DynamicFarClip
+        {
+            get => m_DynamicFarClip;
+            set
+            {
+                if (m_DynamicFarClip != value)
+                {
+                    m_DynamicFarClip = value;
+                    m_Preset = PerformancePreset.Custom;
+                    UltraVisibilityEngineSystem.Instance?.ApplyVisibilityMode(m_UltraVisibilityMode, value, m_StrictMeshMemory);
+                    ApplyAndSave();
+                }
+            }
+        }
+
+        [SettingsUISection(TabGraphics, GroupGraphics)]
+        public bool StrictMeshMemory
+        {
+            get => m_StrictMeshMemory;
+            set
+            {
+                if (m_StrictMeshMemory != value)
+                {
+                    m_StrictMeshMemory = value;
+                    m_Preset = PerformancePreset.Custom;
+                    UltraVisibilityEngineSystem.Instance?.ApplyVisibilityMode(m_UltraVisibilityMode, m_DynamicFarClip, value);
+                    ApplyAndSave();
+                }
+            }
+        }
+
         // --- ACTIONS TAB (MANUAL BUTTONS) ---
         [SettingsUIButton]
         [SettingsUISection(TabActions, GroupActions)]
@@ -822,6 +873,7 @@ namespace UltraPerformanceMod
             ShadowOptimizerSystem.ApplyShadowOptimization(m_OptimizeShadows);
             HoverOverlayOptimizerSystem.Instance?.SetOutlinesPassEnabled(!m_DisableHoverOverlay);
             TreeLodOptimizerSystem.Instance?.ApplyLodMode(m_TreeLodMode);
+            UltraVisibilityEngineSystem.Instance?.ApplyVisibilityMode(m_UltraVisibilityMode, m_DynamicFarClip, m_StrictMeshMemory);
         }
 
         public override void SetDefaults()

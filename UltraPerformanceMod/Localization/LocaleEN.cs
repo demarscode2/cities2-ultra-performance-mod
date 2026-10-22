@@ -127,6 +127,16 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetEnumValueLocaleID(TreeLodMode.Moderate), "Moderate (~65% LOD - Reduced Horizon)" },
                 { m_Setting.GetEnumValueLocaleID(TreeLodMode.Aggressive), "Aggressive (~40% LOD - Camera Proximity Only)" },
                 { m_Setting.GetEnumValueLocaleID(TreeLodMode.Extreme), "Extreme (~20% LOD - Maximum Foliage Culling)" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.VisibilityMode)), "Ultra Visibility Engine (Overall Profile)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.VisibilityMode)), "Internal visual culling and rendering engine orchestrating mesh LOD, dynamic frustum far-clip, and strict GPU memory limits. Simulation remains 100% untouched." },
+                { m_Setting.GetEnumValueLocaleID(UltraVisibilityMode.Vanilla), "Vanilla (100% Game Default)" },
+                { m_Setting.GetEnumValueLocaleID(UltraVisibilityMode.Balanced), "Balanced (~70% LOD, Strict Memory)" },
+                { m_Setting.GetEnumValueLocaleID(UltraVisibilityMode.Aggressive), "Aggressive (~45% LOD, High FPS Boost)" },
+                { m_Setting.GetEnumValueLocaleID(UltraVisibilityMode.Extreme), "Extreme (~25% LOD, Megalopolis Culling)" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DynamicFarClip)), "Dynamic Frustum Far-Clip" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.DynamicFarClip)), "Adjusts camera far clipping plane dynamically based on altitude and tilt to prevent rasterizing hidden horizon geometry." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.StrictMeshMemory)), "Strict Mesh Memory Budget (VRAM)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.StrictMeshMemory)), "Forces BatchMeshSystem to respect strict VRAM limits, discarding distant high-poly meshes." },
 
                 // Quick Action Buttons
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CleanGarbageButton)), "Clear All City Garbage" },

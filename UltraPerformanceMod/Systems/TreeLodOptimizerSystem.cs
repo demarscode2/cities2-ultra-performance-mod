@@ -113,6 +113,13 @@ namespace UltraPerformanceMod.Systems
 
                 if (m_RenderingSystem == null) return;
 
+                // If UltraVisibilityEngineSystem is in a custom/extreme mode, let it coordinate
+                if (UltraVisibilityEngineSystem.Instance != null && UltraVisibilityEngineSystem.Instance.CurrentMode != UltraVisibilityMode.Vanilla)
+                {
+                    // Ultra Visibility Engine takes precedence
+                    return;
+                }
+
                 switch (m_CurrentMode)
                 {
                     case TreeLodMode.Vanilla:

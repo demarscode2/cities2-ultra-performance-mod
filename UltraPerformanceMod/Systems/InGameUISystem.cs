@@ -31,6 +31,12 @@ namespace UltraPerformanceMod.Systems
         private ValueBinding<bool> m_DisableHoverOverlayBinding = default!;
         private ValueBinding<bool> m_OptimizeShadowsBinding = default!;
         private ValueBinding<int> m_TreeLodModeBinding = default!;
+        private ValueBinding<int> m_VisibilityModeBinding = default!;
+        private ValueBinding<bool> m_DynamicFarClipBinding = default!;
+        private ValueBinding<bool> m_StrictMeshMemoryBinding = default!;
+        private ValueBinding<float> m_UveFarClipBinding = default!;
+        private ValueBinding<float> m_UveLodPercentBinding = default!;
+        private ValueBinding<int> m_UveMaxLightsBinding = default!;
         private ValueBinding<bool> m_AutoEvacuateHomelessBinding = default!;
         private ValueBinding<bool> m_AutoClearDeadlocksBinding = default!;
         private ValueBinding<bool> m_HideNotificationIconsBinding = default!;
@@ -82,6 +88,12 @@ namespace UltraPerformanceMod.Systems
             AddBinding(m_DisableHoverOverlayBinding = new ValueBinding<bool>(Group, "DisableHoverOverlay", s?.DisableHoverOverlay ?? false));
             AddBinding(m_OptimizeShadowsBinding = new ValueBinding<bool>(Group, "OptimizeShadows", s?.OptimizeShadows ?? true));
             AddBinding(m_TreeLodModeBinding = new ValueBinding<int>(Group, "TreeLodMode", (int)(s?.TreeLodMode ?? TreeLodMode.Vanilla)));
+            AddBinding(m_VisibilityModeBinding = new ValueBinding<int>(Group, "VisibilityMode", (int)(s?.VisibilityMode ?? UltraVisibilityMode.Vanilla)));
+            AddBinding(m_DynamicFarClipBinding = new ValueBinding<bool>(Group, "DynamicFarClip", s?.DynamicFarClip ?? true));
+            AddBinding(m_StrictMeshMemoryBinding = new ValueBinding<bool>(Group, "StrictMeshMemory", s?.StrictMeshMemory ?? true));
+            AddBinding(m_UveFarClipBinding = new ValueBinding<float>(Group, "UveFarClip", 10000f));
+            AddBinding(m_UveLodPercentBinding = new ValueBinding<float>(Group, "UveLodPercent", 100f));
+            AddBinding(m_UveMaxLightsBinding = new ValueBinding<int>(Group, "UveMaxLights", 8192));
             AddBinding(m_AutoEvacuateHomelessBinding = new ValueBinding<bool>(Group, "AutoEvacuateHomeless", s?.AutoEvacuateHomeless ?? true));
             AddBinding(m_AutoClearDeadlocksBinding = new ValueBinding<bool>(Group, "AutoClearDeadlocks", s?.AutoClearDeadlocks ?? false));
             AddBinding(m_HideNotificationIconsBinding = new ValueBinding<bool>(Group, "HideNotificationIcons", s?.HideNotificationIcons ?? false));
@@ -119,6 +131,8 @@ namespace UltraPerformanceMod.Systems
             AddBinding(new TriggerBinding(Group, "ClearSmartCache", ClearSmartCacheAction));
             AddBinding(new TriggerBinding<int>(Group, "SetAutoTunerProfile", SetAutoTunerProfileAction));
             AddBinding(new TriggerBinding<int>(Group, "SetTreeLodMode", SetTreeLodModeAction));
+            AddBinding(new TriggerBinding<int>(Group, "SetVisibilityMode", SetVisibilityModeAction));
+            AddBinding(new TriggerBinding<string, bool>(Group, "ToggleUveSetting", ToggleUveSettingAction));
 
             if (s != null)
             {
@@ -260,6 +274,52 @@ namespace UltraPerformanceMod.Systems
             SetStatusMessage($"[OK] LOD de Árvores [EXPERIMENTAL]: {desc}");
         }
 
+        private void SetVisibilityModeAction(int modeIdx)
+        {
+            var s = Mod.Settings;
+            if (s == null) return;
+
+            var mode = (UltraVisibilityMode)modeIdx;
+            s.VisibilityMode = mode;
+            UltraVisibilityEngineSystem.Instance?.ApplyVisibilityMode(mode, s.DynamicFarClip, s.StrictMeshMemory);
+            s.ApplyAndSave();
+
+            m_VisibilityModeBinding.Update(modeIdx);
+            string desc = mode switch
+            {
+                UltraVisibilityMode.Vanilla => "Padrão Nativo (100% LOD, FarClip Padrão)",
+                UltraVisibilityMode.Balanced => "Otimizado (~70% LOD, FarClip Suave, VRAM Otimizada)",
+                UltraVisibilityMode.Aggressive => "Agressivo (~45% LOD, Vegetação/Props Cortados Longe, FarClip Dinâmico)",
+                UltraVisibilityMode.Extreme => "Extremo (~25% LOD, Culling Máximo, 2048 Luzes, Salto Brutal de FPS)",
+                _ => "Padrão"
+            };
+            SetStatusMessage($"[OK] Ultra Visibility Engine: {desc}");
+            UpdateDiagnosticsBindings();
+        }
+
+        private void ToggleUveSettingAction(string key, bool value)
+        {
+            var s = Mod.Settings;
+            if (s == null) return;
+
+            switch (key)
+            {
+                case "DynamicFarClip":
+                    s.DynamicFarClip = value;
+                    m_DynamicFarClipBinding.Update(value);
+                    break;
+                case "StrictMeshMemory":
+                    s.StrictMeshMemory = value;
+                    m_StrictMeshMemoryBinding.Update(value);
+                    break;
+            }
+
+            UltraVisibilityEngineSystem.Instance?.ApplyVisibilityMode(s.VisibilityMode, s.DynamicFarClip, s.StrictMeshMemory);
+            s.ApplyAndSave();
+            SetStatusMessage($"[OK] Visibilidade: {key} = {(value ? "Ativado" : "Desativado")}");
+            UpdateDiagnosticsBindings();
+        }
+
         private void UpdateDiagnosticsBindings()
         {
             var core = UltraCoreEngine.Instance;
@@ -285,6 +345,14 @@ namespace UltraPerformanceMod.Systems
             m_DiagFrameBudgetMsBinding.Update((float)core.AutoTuner.CurrentFrameBudgetMs);
             m_DiagCacheEntriesBinding.Update(core.Cache.TotalCachedEntries);
             m_DiagZeroAllocOpsBinding.Update((int)core.Memory.TotalZeroAllocOperations);
+
+            if (UltraVisibilityEngineSystem.Instance != null)
+            {
+                var uve = UltraVisibilityEngineSystem.Instance;
+                m_UveFarClipBinding.Update(uve.CurrentFarClip);
+                m_UveLodPercentBinding.Update(uve.CurrentLodFactor * 100f);
+                m_UveMaxLightsBinding.Update(uve.CurrentMaxLights);
+            }
         }
 
         public void ExecuteQuickAction(string actionKey)
@@ -400,6 +468,9 @@ namespace UltraPerformanceMod.Systems
             m_DisableHoverOverlayBinding.Update(s.DisableHoverOverlay);
             m_OptimizeShadowsBinding.Update(s.OptimizeShadows);
             m_TreeLodModeBinding.Update((int)s.TreeLodMode);
+            m_VisibilityModeBinding.Update((int)s.VisibilityMode);
+            m_DynamicFarClipBinding.Update(s.DynamicFarClip);
+            m_StrictMeshMemoryBinding.Update(s.StrictMeshMemory);
             m_AutoEvacuateHomelessBinding.Update(s.AutoEvacuateHomeless);
             m_AutoClearDeadlocksBinding.Update(s.AutoClearDeadlocks);
             m_HideNotificationIconsBinding.Update(s.HideNotificationIcons);

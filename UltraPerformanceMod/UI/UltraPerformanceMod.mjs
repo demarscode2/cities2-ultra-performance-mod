@@ -28,6 +28,12 @@ const disableTreeGrowth$ = api.bindValue(Group, "DisableTreeGrowth", true);
 const disableHoverOverlay$ = api.bindValue(Group, "DisableHoverOverlay", false);
 const optimizeShadows$ = api.bindValue(Group, "OptimizeShadows", true);
 const treeLodMode$ = api.bindValue(Group, "TreeLodMode", 0);
+const visibilityMode$ = api.bindValue(Group, "VisibilityMode", 0);
+const dynamicFarClip$ = api.bindValue(Group, "DynamicFarClip", true);
+const strictMeshMemory$ = api.bindValue(Group, "StrictMeshMemory", true);
+const uveFarClip$ = api.bindValue(Group, "UveFarClip", 10000);
+const uveLodPercent$ = api.bindValue(Group, "UveLodPercent", 100);
+const uveMaxLights$ = api.bindValue(Group, "UveMaxLights", 8192);
 const autoEvacuateHomeless$ = api.bindValue(Group, "AutoEvacuateHomeless", true);
 const autoClearDeadlocks$ = api.bindValue(Group, "AutoClearDeadlocks", false);
 const hideNotificationIcons$ = api.bindValue(Group, "HideNotificationIcons", false);
@@ -202,6 +208,12 @@ const FloatingPanel = () => {
         const disableHoverOverlay = api.useValue(disableHoverOverlay$);
         const optimizeShadows = api.useValue(optimizeShadows$);
         const treeLodMode = api.useValue(treeLodMode$);
+        const visibilityMode = api.useValue(visibilityMode$);
+        const dynamicFarClip = api.useValue(dynamicFarClip$);
+        const strictMeshMemory = api.useValue(strictMeshMemory$);
+        const uveFarClip = api.useValue(uveFarClip$);
+        const uveLodPercent = api.useValue(uveLodPercent$);
+        const uveMaxLights = api.useValue(uveMaxLights$);
         const autoEvacuateHomeless = api.useValue(autoEvacuateHomeless$);
         const autoClearDeadlocks = api.useValue(autoClearDeadlocks$);
         const hideNotificationIcons = api.useValue(hideNotificationIcons$);
@@ -523,56 +535,118 @@ const FloatingPanel = () => {
                                     )
                                 )
                             ),
-                            // Section: Experimental Foliage & Mesh LOD Control
+                            // Section: Ultra Visibility Engine (UVE)
                             React.createElement(
                                 "div",
-                                { className: "upm-group-section upm-experimental-section" },
+                                { className: "upm-group-section upm-uve-section" },
                                 React.createElement(
                                     "div",
-                                    { className: "upm-experimental-header" },
+                                    { className: "upm-uve-header" },
+                                    React.createElement("span", { className: "upm-badge-uve" }, "ULTRA VISIBILITY ENGINE"),
                                     React.createElement("span", { className: "upm-badge-experimental" }, "EXPERIMENTAL"),
-                                    React.createElement("div", { className: "upm-group-title", style: { margin: 0 } }, "Controle de LOD & \u00C1rvores Distantes")
+                                    React.createElement("div", { className: "upm-group-title", style: { margin: 0 } }, "Culling & Visibilidade Gr\u00E1fica")
                                 ),
                                 React.createElement(
                                     "div",
-                                    { className: "upm-experimental-desc" },
-                                    "Fun\u00E7\u00E3o Experimental: Controla a dist\u00E2ncia de renderiza\u00E7\u00E3o de folhagem e \u00E1rvores. Em n\u00EDveis agressivos, \u00E1rvores distantes deixam de ser processadas e surgem suavemente conforme a c\u00E2mera se aproxima, gerando grande al\u00EDvio de draw calls e v\u00E9rtices na GPU."
+                                    { className: "upm-uve-desc" },
+                                    "Motor avan\u00E7ado de culling gr\u00E1fico: reduz o trabalho desnecess\u00E1rio da GPU atrav\u00E9s de Frustum Culling din\u00E2mico de horizonte, redu\u00E7\u00E3o escalonada de LOD para \u00E1rvores, props e edif\u00EDcios, controle r\u00EDgido de mem\u00F3ria de malhas e capping de ilumina\u00E7\u00E3o. A simula\u00E7\u00E3o da cidade continua 100% ativa em segundo plano."
                                 ),
+                                // Mode selector buttons
                                 React.createElement(
                                     "div",
                                     { className: "upm-lod-buttons" },
                                     [
                                         { id: 0, label: "Padr\u00E3o", sub: "100% Nativo" },
-                                        { id: 1, label: "Moderado", sub: "~65% Horizonte" },
-                                        { id: 2, label: "Agressivo", sub: "~40% C\u00E2mera" },
-                                        { id: 3, label: "Extremo", sub: "~20% Culling M\u00E1x" }
+                                        { id: 1, label: "Otimizado", sub: "~70% Equilibrado" },
+                                        { id: 2, label: "Agressivo", sub: "~45% Alto FPS" },
+                                        { id: 3, label: "Extremo", sub: "~25% Megal\u00F3pole" }
                                     ].map((m) =>
                                         React.createElement(
                                             "button",
                                             {
                                                 key: m.id,
-                                                className: "upm-lod-btn" + (treeLodMode === m.id ? " active" : ""),
-                                                onClick: () => api.trigger(Group, "SetTreeLodMode", m.id)
+                                                className: "upm-lod-btn" + (visibilityMode === m.id ? " active" : ""),
+                                                onClick: () => api.trigger(Group, "SetVisibilityMode", m.id)
                                             },
                                             React.createElement("span", { className: "upm-lod-btn-title" }, m.label),
                                             React.createElement("span", { className: "upm-lod-btn-sub" }, m.sub)
                                         )
                                     )
                                 ),
+                                // Real-Time UVE Telemetry Strip
                                 React.createElement(
                                     "div",
-                                    { className: "upm-lod-status" },
-                                    React.createElement("span", { className: "upm-lod-status-label" }, "Efeito Atual: "),
+                                    { className: "upm-uve-telemetry-strip" },
                                     React.createElement(
-                                        "span",
-                                        { className: "upm-lod-status-val" },
-                                        treeLodMode === 0
-                                            ? "Padr\u00E3o nativo (todas as \u00E1rvores renderizadas normalmente no horizonte)"
-                                            : treeLodMode === 1
-                                            ? "Moderado (florestas no horizonte reduzidas - ganho suave de FPS)"
-                                            : treeLodMode === 2
-                                            ? "Agressivo (\u00E1rvores s\u00F3 aparecem perto da c\u00E2mera - salto brutal de FPS)"
-                                            : "Extremo (culling m\u00E1ximo - renderiza apenas folhagem colada \u00E0 c\u00E2mera)"
+                                        "div",
+                                        { className: "upm-uve-chip" },
+                                        React.createElement("span", { className: "upm-uve-chip-lbl" }, "Far-Clip:"),
+                                        React.createElement("span", { className: "upm-uve-chip-val" }, (uveFarClip > 0 ? (uveFarClip / 1000).toFixed(1) + " km" : "10 km"))
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-uve-chip" },
+                                        React.createElement("span", { className: "upm-uve-chip-lbl" }, "LOD Malhas:"),
+                                        React.createElement("span", { className: "upm-uve-chip-val" }, uveLodPercent.toFixed(0) + "%")
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-uve-chip" },
+                                        React.createElement("span", { className: "upm-uve-chip-lbl" }, "Luzes M\u00E1x:"),
+                                        React.createElement("span", { className: "upm-uve-chip-val" }, uveMaxLights)
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-uve-chip" },
+                                        React.createElement("span", { className: "upm-uve-chip-lbl" }, "Simula\u00E7\u00E3o:"),
+                                        React.createElement("span", { className: "upm-uve-chip-val upm-metric-good" }, "100% Viva")
+                                    )
+                                ),
+                                // Granular Sub-Toggles
+                                [
+                                    { label: "Frustum Culling Din\u00E2mico (Far-Clip)", sub: "Ajusta o alcance do horizonte conforme altitude e inclina\u00E7\u00E3o da c\u00E2mera", key: "DynamicFarClip", val: dynamicFarClip },
+                                    { label: "Mem\u00F3ria de Malhas Rigorosa (VRAM)", sub: "Evita estouro de VRAM e descarta geometrias pesadas fora de foco", key: "StrictMeshMemory", val: strictMeshMemory }
+                                ].map((item) =>
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-row", key: item.key, style: { borderBottom: "1rem solid rgba(255,255,255,0.05)" } },
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-row-text" },
+                                            React.createElement("span", { className: "upm-row-label" }, item.label),
+                                            React.createElement("span", { className: "upm-row-sub" }, item.sub)
+                                        ),
+                                        React.createElement(ToggleSwitch, {
+                                            checked: item.val,
+                                            onChange: (val) => api.trigger(Group, "ToggleUveSetting", item.key, val)
+                                        })
+                                    )
+                                ),
+                                // Granular Tree LOD sub-selector
+                                React.createElement(
+                                    "div",
+                                    { style: { marginTop: "8rem" } },
+                                    React.createElement("div", { className: "upm-sub-selector-title" }, "LOD Espec\u00EDfico de \u00C1rvores & Folhagem:"),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-lod-buttons" },
+                                        [
+                                            { id: 0, label: "Padr\u00E3o", sub: "100%" },
+                                            { id: 1, label: "Moderado", sub: "~65%" },
+                                            { id: 2, label: "Agressivo", sub: "~40%" },
+                                            { id: 3, label: "Extremo", sub: "~20%" }
+                                        ].map((m) =>
+                                            React.createElement(
+                                                "button",
+                                                {
+                                                    key: m.id,
+                                                    className: "upm-lod-btn" + (treeLodMode === m.id ? " active" : ""),
+                                                    onClick: () => api.trigger(Group, "SetTreeLodMode", m.id)
+                                                },
+                                                React.createElement("span", { className: "upm-lod-btn-title" }, m.label),
+                                                React.createElement("span", { className: "upm-lod-btn-sub" }, m.sub)
+                                            )
+                                        )
                                     )
                                 )
                             ),

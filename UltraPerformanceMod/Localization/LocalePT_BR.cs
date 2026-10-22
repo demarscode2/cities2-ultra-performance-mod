@@ -127,6 +127,16 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetEnumValueLocaleID(TreeLodMode.Moderate), "Moderado (~65% LOD - Horizonte Reduzido)" },
                 { m_Setting.GetEnumValueLocaleID(TreeLodMode.Aggressive), "Agressivo (~40% LOD - Árvores Só Perto da Câmera)" },
                 { m_Setting.GetEnumValueLocaleID(TreeLodMode.Extreme), "Extremo (~20% LOD - Culling Máximo de Folhagem)" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.VisibilityMode)), "Ultra Visibility Engine (Perfil Geral)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.VisibilityMode)), "Motor interno de culling e visibilidade que orquestra LOD de malhas, culling dinâmico de frustum e controle de memória da GPU. A simulação da cidade permanece 100% intacta." },
+                { m_Setting.GetEnumValueLocaleID(UltraVisibilityMode.Vanilla), "Padrão (100% Nativo)" },
+                { m_Setting.GetEnumValueLocaleID(UltraVisibilityMode.Balanced), "Otimizado (~70% LOD, Memória Rigorosa)" },
+                { m_Setting.GetEnumValueLocaleID(UltraVisibilityMode.Aggressive), "Agressivo (~45% LOD, Alto Ganho de FPS)" },
+                { m_Setting.GetEnumValueLocaleID(UltraVisibilityMode.Extreme), "Extremo (~25% LOD, Culling Máximo Megalópole)" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DynamicFarClip)), "Frustum Culling Dinâmico (Far-Clip)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.DynamicFarClip)), "Ajusta o plano distante da câmera conforme a altitude e inclinação para evitar transformar vértices ocultos no horizonte." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.StrictMeshMemory)), "Controle Rigoroso de Memória de Malhas (VRAM)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.StrictMeshMemory)), "Força o BatchMeshSystem a respeitar limites estritos de VRAM, descartando geometrias pesadas e instâncias distantes." },
 
                 // Botões de Ações Rápidas
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CleanGarbageButton)), "Esvaziar Todo o Lixo da Cidade" },
