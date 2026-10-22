@@ -14,7 +14,7 @@ namespace UltraPerformanceMod
     {
         public const string ModName = "Ultra Performance & Simulation Booster";
         public const string ModId = "UltraPerformanceMod";
-        public const string Version = "1.3.4";
+        public const string Version = "1.4.0";
 
         public static readonly ILog log = LogManager.GetLogger(ModId).SetShowsErrorsInUI(false);
         public static Setting? Settings { get; private set; }
@@ -44,6 +44,8 @@ namespace UltraPerformanceMod
 
                 // Phase: PreCulling (UltraCore Engine, Visibility & Rendering Control)
                 updateSystem.UpdateAt<UltraCoreSystem>(SystemUpdatePhase.PreCulling);
+                updateSystem.UpdateAt<UltraVisibilityEngineSystem>(SystemUpdatePhase.PreCulling);
+                updateSystem.UpdateAt<TreeLodOptimizerSystem>(SystemUpdatePhase.PreCulling);
                 updateSystem.UpdateAt<NPCVisibilitySystem>(SystemUpdatePhase.PreCulling);
                 updateSystem.UpdateAt<VehicleVisibilitySystem>(SystemUpdatePhase.PreCulling);
                 updateSystem.UpdateAt<AnimalManagerSystem>(SystemUpdatePhase.PreCulling);

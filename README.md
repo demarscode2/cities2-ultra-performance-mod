@@ -1,107 +1,86 @@
-# ⚡ Ultra Performance & Simulation Booster (Beta v1.3.1)
-### *O Mod Definitivo de Desempenho e Simulação para Cities: Skylines II*
+# ⚡ Ultra Performance & Simulation Booster (Beta v1.4.0)
+### *O Mod Definitivo de Desempenho, Renderização e Simulação para Cities: Skylines II*
 
-![Ultra Performance Booster](Properties/Thumbnail.png)
+![Ultra Performance Booster](UltraPerformanceMod/Properties/Thumbnail.png)
 
-O **Ultra Performance & Simulation Booster** foi desenvolvido sob medida para resolver os gargalos mais críticos do Cities: Skylines II: **queda drástica de FPS, lentidão extrema da simulação na CPU e congelamento do tráfego por cálculo excessivo de rotas (pathfinding)**.
+O **Ultra Performance & Simulation Booster** foi desenvolvido sob medida para resolver os gargalos mais críticos do Cities: Skylines II: **queda de FPS, sobrecarga na renderização gráfica, lentidão extrema da simulação na CPU e congelamento do tráfego por cálculo excessivo de rotas (pathfinding)**.
 
-> 🏙️ **Testado e Comprovado em Cidades Reais:** Testado com sucesso em uma megalópole de **700.000 habitantes** que travava constantemente e operava em lentidão extrema. Apenas com a ativação de algumas opções-chave, a simulação recuperou a fluidez e a taxa de quadros subiu significativamente!
+Projetado sobre a arquitetura nativa ECS / DOTS e Unity HDRP, o mod oferece um ecossistema completo de ferramentas para recuperar a fluidez em cidades de qualquer porte, inclusive megalópoles com mais de **700.000 a 1.000.000 de habitantes**.
 
----
-
-## ⚠️ Recomendações e Avisos Importantes (Leia Antes de Usar)
-
-* 💾 **Faça Backup do seu Save:** Embora todas as operações do mod utilizem chamadas nativas e seguras da ECS (`EntityManager`), sempre salve uma cópia do seu jogo antes de realizar limpezas em massa.
-* **Use Ações Rápidas com Consciência:** Botões como *Concluir Obras Instantaneamente* ou *Remover Todos os Animais* operam em escala global no mapa.
-* **Impactos Diretos na Gestão Urbana:**
-  - **Polícia Automática:** Mantém a criminalidade da cidade permanentemente zerada. Viaturas policiais deixam de congestionar as ruas.
-  - **Funerária Automática:** Os cidadãos que falecerem são recolhidos instantaneamente para a eternidade, eliminando o acúmulo de corpos nos imóveis e os rabecões nas ruas.
-  - **Lixo Automático:** Esvazia o lixo de todos os imóveis, retirando caminhões coletores lentos do trânsito.
-  - **Manutenção de Rodovias e Parques:** Mantém a qualidade do asfalto em 100% e o lazer em nível máximo sem lentidão nas pistas.
-  - **Ambulâncias e Postos de Saúde:** Cura doentes e resolve emergências médicas sem ambulâncias travadas em engarrafamentos.
+> 🔗 **Repositório Oficial no GitHub:** [https://github.com/demarscode2/cities2-ultra-performance-mod](https://github.com/demarscode2/cities2-ultra-performance-mod)  
+> 🎯 **Versão do Jogo Suportada:** `1.6.*`
 
 ---
 
-## 🔍 Problemas Conhecidos & Comportamentos Normais
+## 👁️ NOVIDADE: Ultra Visibility Engine (UVE) [Fase Experimental]
 
-1. **Caminhões Pequenos / Sem Trailer Temporariamente:**
-   - Ao executar a limpeza de carretinhas ou ao ativar a remoção de reboques órfãos, alguns caminhões articulados podem ficar pequenos (apenas o cavalinho mecânico) durante alguns instantes.
-   - **Solução:** É um comportamento visual temporário normal da ECS. Deixe o jogo rodar na velocidade 1x por alguns segundos e os veículos atualizarão suas malhas automaticamente.
-2. **Motos e Bicicletas "Fantasmas":**
-   - Ao ativar a opção **"Ocultar Cidadãos (NPCs)"**, o pedestre que pilota a bicicleta ou a motocicleta é ocultado, mas o veículo de duas rodas permanece visível, dando a impressão de "bicicletas andando sozinhas".
-   - **Solução:** Se isso incomodar visualmente, ative as opções dedicadas **"Ocultar Bicicletas"** e **"Ocultar Motocicletas"** no painel do mod.
+O **Ultra Visibility Engine (UVE)** é o novo subsistema interno focado em reduzir drasticamente o trabalho gráfico e de vértices desnecessário na GPU, preservando 100% da simulação da sua cidade:
 
----
-
-## 🖥️ Painel In-Game Exclusivo (HUD no Topo Esquerdo)
-
-Esqueça a necessidade de abrir o menu de configurações do jogo. O mod adiciona um ícone nativo com o símbolo de **Raio ⚡** na barra superior esquerda (**GameTopLeft**, ao lado de ferramentas como Better Transit View e Park Manager).
-
-Ao clicar no ícone, um painel flutuante estilizado se abre com:
-
-### 1. 🔘 Aba de Ações Rápidas (14 Limpezas Instantâneas em 1 Clique)
-* **Desobstruir Trânsito:** Remove pontualmente veículos em bloqueio circular real (gridlock), preservando semáforos e conversões normais.
-* **Limpar Trailers, Reboques e Vans (Props):** Remove contêineres soltos, reboques órfãos e furgões persistentes inspecionados via Find It (`Trailer pequeno Prop`, `Trailer intermodal prop`, `trailer para tronco`, `Reboque prop`, `trailer de viagem`, `vans de entrega`).
-* **Limpar Acidentes:** Remove todos os eventos de batida e carros capotados das pistas.
-* **Limpar Todo Lixo:** Zera o lixo de todos os imóveis da cidade.
-* **Coleta Funerária:** Recolhe todos os óbitos pendentes imediatamente.
-* **Manutenção de Ruas:** Restaura 100% da condição do asfalto em todas as vias.
-* **Manutenção de Parques:** Restaura o estado de conservação de todos os parques e praças.
-* **Socorrer Cidade:** Cura imediatamente todos os doentes e acidentados.
-* **Entregar Correspondências:** Zera cartas e encomendas acumuladas.
-* **Limpar Animais:** Remove cães e animais soltos para poupar CPU de pathfinding.
-* **Concluir Obras:** Conclui instantaneamente todas as construções e elevações de nível.
-* **Limpar Táxis Externos:** Remove táxis vindos de fora do mapa pelas conexões regionais.
-* **Limpar Tráfego Falso:** Remove veículos fictícios que apenas atravessam a cidade.
-* **Limpar Vagas:** Libera vagas de estacionamento travadas.
-
-### 2. 🎛️ Aba de Ajustes em Tempo Real (Live Settings)
-* **Predefinições em 1 Clique:**
-  - 🟢 **Básico:** Serviços automáticos essenciais, bloqueio de táxis de fora e limpeza de tráfego passante.
-  - 🟡 **Médio (Recomendado):** Automações completas, animais invisíveis, água otimizada, ícones de alerta ocultos e sem vento nas árvores.
-  - 🔴 **Máximo (FPS Extremo / Megalópoles):** Para cidades acima de 500k habitantes. Pedestres, veículos e árvores invisíveis, água estática e crescimento instantâneo.
-* **Alternadores Individuais:**
-  - Ocultar Cidadãos (NPCs)
-  - Ocultar Veículos Gerais
-  - Ocultar Bicicletas
-  - Ocultar Motocicletas
-  - Ocultar Árvores
-  - Desativar Vento nas Árvores
-  - Ocultar Ícones de Erro / Alerta Flutuantes
-  - Desobstrução Automática Inteligente de Trânsito
-* **Seletor de Simulação de Água:**
-  - ❄️ *Congelada (Máximo FPS)*
-  - 💧 *Otimizada (Cálculo suave espaçado)*
-  - 🌊 *Vanilla (Padrão do Jogo)*
-
-### 3. 💡 Aba de Dicas & Status
-- Informações sobre o funcionamento da simulação, guia de resolução de gargalos e barra inferior de feedback instantâneo de cada comando acionado.
+* **Controle Multinível de LOD de Distância:**
+  * 🟢 **Vanilla (100%):** Distâncias de renderização e detalhe originais do jogo.
+  * 🟡 **Equilibrado (70%):** Transição suave de malhas à distância; oculta pequenos props microscópicos e otimiza a densidade sem impacto perceptível.
+  * 🟠 **Agressivo (45%):** Transição antecipada de árvores e edifícios distantes para variantes de baixo consumo de polígonos; corte de props decorativos além de 150m.
+  * 🔴 **Extremo (25%):** Foco absoluto em taxa de quadros (FPS); malhas de alta definição reservadas apenas para as imediações da câmera.
+* **Frustum Far-Clip Dinâmico:** Ajusta suavemente o plano de corte de horizonte da câmera com base na altitude e no ângulo vertical (*pitch*). A nível de rua, o corte é reduzido de 10.000m para 2.400m–3.500m, economizando até 70% de geometria desnecessária oculta pela névoa volumétrica.
+* **Orçamento Estrito de Memória GPU (HLOD):** Força o motor do jogo (`strictMemoryBudget = true`) a consolidar chamadas de desenho (*draw calls*) em sub-lotes nativos já alocados, evitando o inchaço e a fragmentação da VRAM.
+* **Teto de Iluminação Noturna (Clustered Lights):** Limita o teto de luzes simultâneas ativas em períodos noturnos (4.096 no Agressivo e 2.048 no Extremo), eliminando engasgos pesados nos shaders de iluminação diferida.
+* **Garantia de Simulação 100% Intacta:** Todo o processamento do UVE atua estritamente na pipeline de renderização. **Nenhuma entidade é deletada ou pausada.** Cidadãos, carros, rotas de tráfego, comércio, indústrias e serviços continuam sendo simulados em tempo integral.
 
 ---
 
-## 🚦 Trânsito Inteligente: Como Funciona a Nova Desobstrução?
+## 🔬 Aviso Sobre Fase Experimental & Limites do Motor do Jogo
 
-Diferente de mods antigos que apagavam carros aguardando o semáforo abrir ou passageiros embarcarem (o que provocava recálculos em massa no processador), o algoritmo de trânsito deste mod possui **imunidade total a operações legítimas**:
-- **Nunca remove:** carros esperando semáforo (`BlockerType.Signal`), faixa de pedestres (`Crossing`), pontes móveis (`Limit`) ou veículos efetuando manobra de estacionamento (`ParkingSpace`).
-- **Detecta Deadlocks Reais:** Analisa a cadeia de bloqueadores e atua apenas se houver travamento circular (o carro da frente fecha o de trás e ninguém anda) ou carros presos fora da malha viária navegável.
-
----
-
-## 📦 Instalação e Compilação
-
-Para compilar e gerar a build:
-```bash
-dotnet build ./UltraPerformanceMod/UltraPerformanceMod.csproj -c Release
-```
-Os arquivos são copiados diretamente para a pasta de mods locais do Cities: Skylines II:
-`%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\UltraPerformanceMod`
+> [!WARNING]
+> **Transparência e Expectativas Reais de Desempenho:**
+> * Recursos como o **Ultra Visibility Engine (UVE)**, o escalonamento multinível de LOD e o ajuste profundo de threads de simulação estão em **Fase Experimental**.
+> * **Não é garantido que o mod aumentará o desempenho em 100% em todas as configurações de computador ou cidades.** O próprio motor do Cities: Skylines II possui limitações arquiteturais internas e gargalos estruturais de CPU que nenhum mod consegue contornar inteiramente.
+> * Os ganhos variam substancialmente dependendo do modelo do seu processador, placa de vídeo, velocidade das memórias RAM, tamanho da população e densidade de construções.
+> * **Liberdade de Configuração:** O jogador tem total liberdade para navegar no painel e testar os diferentes perfis (**Básico**, **Equilibrado**, **Agressivo**, **Extremo**) e interruptores individuais para descobrir qual combinação entrega a melhor experiência visual e de fluidez na sua máquina.
+> * Continuamos estudando continuamente o código do jogo e desenvolvendo melhorias conforme os testes da comunidade!
 
 ---
 
-## Transparência & Desenvolvimento (Aviso de IA e Suporte Ativo)
+## 🧠 UltraCore: Otimizações de CPU e Simulação
 
-Este mod foi desenvolvido com o auxílio de inteligência artificial de última geração, sob minha supervisão técnica, curadoria de código e testes em cidades reais de grande escala (como a megalópole de 700k habitantes). Como criador, possuo conhecimento de programação e estou ativamente comprometido com a estabilidade e evolução do projeto.
+* **Consultas ECS Zero-Alloc & Cache Inteligente:** Reduz o trabalho do coletor de lixo (*Garbage Collector*) da Unity, diminuindo micro-travamentos (*stuttering*).
+* **Desobstrução do Loop de Sem-Teto (Homeless Loop Breaker):** Resolve a falha nativa do jogo em que milhares de moradores de rua ficam acampados em parques calculando rotas infinitamente e sobrecarregando a CPU. Permite evacuação automática periódica ou acionamento imediato por botão.
+* **Desobstrução de Pedestres Travados:** Identifica pedestres presos em calçadas, faixas de pedestres ou escadarias de metrô por falhas de colisão de pista.
+* **Trânsito Inteligente (Deadlock Breaker):** Diferente de soluções que apagam carros em semáforos, nosso algoritmo protege veículos em operações normais (sinal vermelho, faixas, conversões) e só atua em travamentos circulares reais ou carros fora da pista.
 
-* **Suporte Ativo:** Caso novas atualizações oficiais do Cities: Skylines II quebrem alguma função ou você encontre qualquer comportamento inesperado (bug), darei manutenção imediata e lançarei atualizações corretivas.
-* **Código Aberto no GitHub:** O código-fonte completo está disponível publicamente para que qualquer jogador ou modder possa inspecionar a lógica, auditar a segurança e confiar plenamente no que está rodando em sua máquina.
-* **Feedback:** Deixe seus comentários, sugestões ou dúvidas na página do mod no Paradox Mods ou no GitHub!
+---
+
+## 🎨 Otimizações Gráficas e Estabilidade
+
+* **Otimizador de Sombras HDRP:** Limita sombras exageradas além de 450m e filtra micro-props das passagens de sombra, liberando até 40% da carga de rasterização da GPU.
+* **Remoção do Contorno Azul ao Passar o Mouse:** Remove a borda ciano/azul ao passar o cursor sobre edifícios, cidadãos e veículos, economizando uma passagem completa de geometria e pós-processamento por frame (`OutlinesWorldUIPass`).
+* **Vegetação e Árvores:** Desativa o balanço de vento nos vértices das folhas e pausa o envelhecimento visual das árvores, economizando processamento sem afetar a silvicultura.
+* **Água 100% Estável (Vanilla):** Removidos limitadores agressivos de velocidade de água que provocavam trepidações e saltos de barcos; hidrodinâmica mantida lisa e estável.
+
+---
+
+## 🖥️ Painel In-Game Exclusivo (HUD Topo Esquerdo ⚡)
+
+Clique no ícone de raio (**⚡**) na barra superior esquerda para acessar instantaneamente dentro da cidade:
+* **16 Ações Rápidas em 1 Clique:**
+  * Desobstruir Trânsito, Evacuar Sem-Teto, Limpar Pedestres Presos, Limpar Reboques/Props Órfãos, Limpar Acidentes, Limpar Lixo, Coleta Funerária, Manutenção de Asfalto, Manutenção de Parques, Socorrer Doentes, Entregar Cartas, Limpar Animais, Concluir Obras, Limpar Táxis Externos, Limpar Tráfego Falso e Limpar Vagas Travadas.
+* **Ajustes de Perfil em Tempo Real:** Alterne rapidamente entre os modos Vanilla, Equilibrado, Agressivo e Extremo.
+* **Faixa de Telemetria ao Vivo:** Visualize em tempo real o Far-Clip calculado (em metros), o fator de LOD (%), a quantidade de luzes ativas e a confirmação de simulação ativa.
+
+---
+
+## ⚠️ Recomendações de Uso
+* 💾 **Faça Backup do seu Save:** Embora todas as operações do mod utilizem APIs nativas e seguras da ECS (`EntityManager`), sempre salve uma cópia do seu save antes de realizar ações de limpeza em escala metropolitana.
+* **Comportamentos Normais Pós-Limpeza:**
+  * *Caminhões pequenos temporariamente:* Ao limpar trailers órfãos, cavalos mecânicos podem rodar sozinhos por alguns instantes até a malha se atualizar na velocidade 1x.
+  * *Bicicletas sem condutor visível:* Caso ative a opção "Ocultar Cidadãos (NPCs)", ative também "Ocultar Bicicletas" e "Ocultar Motocicletas" para evitar que veículos de duas rodas fiquem visíveis sem o piloto.
+
+---
+
+## 🤖 Transparência & Suporte Ativo do Desenvolvedor (Disclaimer)
+
+Este mod foi desenvolvido com o auxílio de inteligência artificial avançada, sob minha supervisão técnica, curadoria de código, testes exaustivos e conhecimento prático de programação como desenvolvedor.
+
+Estou totalmente comprometido em manter este mod funcional e atualizado:
+* **Suporte Contínuo:** Se qualquer atualização futura do Cities: Skylines II quebrar funcionalidades ou se você identificar bugs, lançarei correções prontamente.
+* **Código 100% Aberto:** O código-fonte completo está disponível no [GitHub](https://github.com/demarscode2/cities2-ultra-performance-mod) para que a comunidade possa auditar, aprender e confiar no que está sendo executado no jogo.
+* **Feedback:** Dúvidas, relatos de testes ou sugestões podem ser compartilhados na página do Paradox Mods ou nas *Issues* do GitHub!

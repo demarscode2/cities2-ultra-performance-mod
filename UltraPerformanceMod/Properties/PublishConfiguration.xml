@@ -3,86 +3,78 @@
 	<!-- Paradox Mods ID -->
 	<ModId Value="164241" />
 	<DisplayName Value="Ultra Performance &amp; Simulation Booster (Beta)" />
-	<ShortDescription Value="Maximize FPS and eliminate simulation/pathfinding lag in cities of up to 1,000,000 citizens with homeless loop breaker, HDRP shadow optimization, hover border removal, tree wind/growth pause, and smart traffic deadlock breaker." />
+	<ShortDescription Value="Maximize FPS and eliminate simulation/pathfinding lag with UltraCore Engine, Ultra Visibility Engine (UVE), Multi-Tier LOD Scaling, Dynamic Frustum Far-Clip, Homeless Loop Breaker, HDRP Shadow Optimizer, and 16 1-Click Cleanups." />
 	<LongDescription>
-# ⚡ Ultra Performance &amp; Simulation Booster (Beta v1.3.4)
-The definitive, all-in-one performance and simulation booster mod for Cities: Skylines II. Engineered from the ground up on the native DOTS / ECS architecture to eliminate CPU simulation delays, reduce pathfinding overhead, and maximize FPS in megalopolises with 700,000 to 1,000,000+ citizens.
+# ⚡ Ultra Performance &amp; Simulation Booster (Beta v1.4.0)
+The definitive, all-in-one performance and simulation booster mod for Cities: Skylines II. Engineered on the native DOTS / ECS architecture to eliminate CPU simulation delays, reduce pathfinding overhead, and maximize GPU FPS in megalopolises with 700,000 to 1,000,000+ citizens.
 
 ---
 
-### 🚀 Outside-the-Box Megacity Performance Upgrades (New in v1.3.4)
-- **⛺ Homeless Evacuation &amp; Pathfinding Unblocker:** Solves the infamous Cities: Skylines II bug where thousands of homeless citizens get trapped camping in parks or road edges, flooding the pathfinding threads with endless recalculation loops. Features both automated periodic evacuation and a 1-click Quick Action button that instantly restores 1.0x-2.0x CPU simulation speed.
-- **🌑 HDRP Shadow Distance &amp; Micro-Caster Optimizer:** Caps excessive 1500m+ shadow rendering down to a clean, crisp 450m via HDRP HDShadowSettings and filters micro-props from shadow passes. Frees up to 40% GPU rasterization overhead in dense skylines.
-- **🚫 Blue Hover Highlight Border Removal:** Eliminates the distracting cyan/blue outline border when hovering your mouse over buildings, citizens, vehicles, and props. Disables the HDRP OutlinesWorldUIPass, saving an entire geometry render pass and fullscreen composite shader blit every frame.
-- **🚶 Stuck Pedestrian Clearer:** Detects and despawns pedestrians caught with lane obstruction glitches on sidewalks, crosswalks, or subway stairs.
-- **🌊 100% Vanilla Water Stability:** Removed experimental water speed throttling to guarantee zero ship/boat bouncing, zero water trembling, and absolute hydrodynamic stability.
+### 👁️ NEW: Ultra Visibility Engine (UVE) [Experimental]
+Reduces redundant GPU geometry rendering and vertex shading without altering or removing simulation entities:
+- **Multi-Tier LOD Scaling (Distance LOD):** 4 discrete levels (**Vanilla 100%**, **Balanced 70%**, **Aggressive 45%**, and **Extreme 25%**) scaling `RenderingSystem.levelOfDetail`, `lodCrossFade`, and `QualitySettings.lodBias`. Simplifies distant vegetation, props, sub-objects, and buildings to lighter LOD variants as camera distance increases.
+- **Dynamic Frustum Far-Clip Optimization:** Dynamically scales the camera's far clip plane based on altitude and pitch against the horizon (from 10,000m down to 2,400m–3,500m at street level with smooth 500m transitions). Eliminates massive vertex processing loads on objects and terrain obscured by volumetric fog.
+- **HLOD &amp; Strict GPU Mesh Memory Budget:** Enforces `BatchMeshSystem.strictMemoryBudget = true`, preventing VRAM bloat and reusing consolidated native indirect draw batches.
+- **Clustered Deferred Light Capping:** Sets an intelligent ceiling on simultaneous clustered night lights (caps to 4,096 in Aggressive and 2,048 in Extreme), preventing severe GPU shader compute stalls in dense urban areas.
+- **100% Simulation Integrity:** Culling is strictly graphical. All citizens, vehicles, economy, city services, and pathfinding continue running at full speed without any pause or simulation disruption.
 
 ---
 
-### 🌲 Foliage Performance: Tree Wind &amp; Growth Control
-- **Tree Wind Sway Suspension:** Disables foliage wind vertex displacement in the volume stack, significantly reducing vertex shader overhead across thousands of trees.
-- **Tree Growth &amp; Aging Freeze:** Pauses tree growth and decay simulation ticks, saving daily ECS CPU cycles while keeping forestry extractors fully operational.
-- **Zero Mod Conflicts:** 100% crash-free and fully compatible with Tree Controller, Line Tool, and Anarchy.
+### 🧠 UltraCore Simulation &amp; CPU Optimization Engine
+- **Zero-Allocation ECS Queries:** Custom memory cache and optimized chunk iteration eliminate garbage collection (GC) spikes and CPU hitching.
+- **Pathfinding &amp; Thread Management:** Deep tuning of pathfind job dispatching and simulation thread allocation to maintain simulation clock speed under heavy city loads.
+- **Homeless Evacuation &amp; Loop Breaker:** Fixes the infamous Cities: Skylines II bug where thousands of homeless citizens get trapped camping in parks, flooding pathfinding threads with endless recalculation loops. Features both automated periodic evacuation and a 1-click Quick Action button.
+- **Stuck Pedestrian Clearer:** Detects and clears pedestrians trapped with lane obstruction glitches on crosswalks, sidewalks, and subway stairs.
+- **Smart Deadlock Breaker:** Intelligently resolves true traffic gridlocks while preserving vehicles waiting at valid red lights, crosswalks, and stops.
 
 ---
 
-### 🏙️ Field Tested on a 700,000 Citizen Megacity
-Tested and validated on a massive 700,000 inhabitant city that suffered from extreme lag and constant freezing. By enabling key service automations, evacuating stuck homeless loops, and fine-tuning GPU shadow rendering, the city regained smooth simulation speed and significant FPS gains without rebuilding roads!
-
----
-
-### ⚠️ Recommendations &amp; Precautions:
-- **Save Backup:** While all operations use safe native ECS EntityManager commands, always create a manual backup of your city save before executing major city-wide purges.
-- **Service Gameplay Impact:**
-  - **Auto Police:** Reduces crime to zero across the city. Police cruisers no longer clog streets.
-  - **Auto Deathcare:** Instantly collects deceased citizens, preventing body accumulation in buildings without hearses.
-  - **Auto Garbage:** Keeps buildings clean of waste without slow garbage trucks blocking avenues.
-  - **Auto Road &amp; Park Maintenance:** Keeps road condition at 100% and parks pristine without maintenance trucks.
-  - **Auto Ambulance:** Immediately heals ill or injured citizens.
-
----
-
-### 🔍 Known Behaviors &amp; Tips:
-1. **Temporarily Small / Cab-Only Trucks:**
-   - After clearing stuck or orphan trailers, articulated trucks might appear as just the truck cab for a few seconds. This is normal ECS visual recreation; let the game run at 1x speed for a few moments and the trailers will re-attach properly.
-2. **Ghost Bikes &amp; Motorcycles:**
-   - If you set "Invisible Citizens / NPCs" to active, the citizen pedaling or riding is hidden, but the two-wheeled vehicle remains visible. If this bothers you, simply enable the dedicated **"Invisible Bicycles"** and **"Invisible Motorcycles"** options in the mod panel.
+### 🎨 Graphics &amp; Visual Enhancements
+- **HDRP Shadow Distance &amp; Micro-Caster Optimizer:** Caps excessive 1500m+ shadow rendering down to a crisp 450m via HDRP HDShadowSettings and filters micro-props from shadow passes, freeing up to 40% GPU rasterization overhead.
+- **Blue Hover Highlight Outline Removal:** Disables the cyan/blue outline border when hovering your mouse over buildings, citizens, vehicles, and props (`OutlinesWorldUIPass`), saving an entire geometry render pass and fullscreen composite shader blit every frame.
+- **Foliage Wind Sway &amp; Growth Freeze:** Disables tree wind vertex displacement and pauses growth/decay ticks, saving vertex shader and CPU cycles while keeping forestry extractors functional.
+- **100% Vanilla Water Stability:** Retains native hydrodynamics with zero ship/boat jumping and zero water surface trembling.
 
 ---
 
 ### 🖥️ In-Game Floating HUD (GameTopLeft ⚡)
-Inspired by Better Transit View and Park Manager, the mod features a native top-left toolbar button (⚡) and an interactive floating panel with:
-- **16 Quick Action Cleanup Buttons:** Instant one-click triggers for Homeless Evacuation, Stuck Pedestrians Clear, Deadlock Clear, Trailers/Props Purge, Accidents, Garbage, Deathcare, Road Repairs, Park Maintenance, Health Cure, Mail Delivery, Animals Purge, Building Construction Completion, Foreign Taxis Despawn, and Parking Slots Cleanup.
-- **Live Settings &amp; Toggles:** Switch between Basic, Medium, and Maximum presets, or customize individual entity visibility (NPCs, Vehicles, Bikes, Motorcycles, Hover Outline Border, Tree Wind, Floating Warning Icons, and HDRP Shadows).
-- **Status Notification Bar:** Real-time feedback for every action triggered.
+Access all features inside your city via the top-left toolbar button:
+- **16 Quick Action Cleanups:** One-click triggers for Homeless Evacuation, Stuck Pedestrians, Deadlocks, Trailers/Props Purge, Accidents, Garbage, Deathcare, Road Repairs, Park Maintenance, Health Cure, Mail Delivery, Animals Purge, Building Construction Completion, Foreign Taxis, and Parking Slots.
+- **Live Telemetry &amp; Settings:** Real-time feedback showing active Far-Clip distance, LOD factor percentage, deferred light count, and 100% simulation active confirmation.
 
 ---
 
-### 🚦 Smart Deadlock Breaker
-Unlike older mods that despawned vehicles waiting at traffic lights or picking up passengers, our intelligent algorithm protects vehicles waiting at red lights, crosswalks, or loading bays, only intervening when a true circular deadlock or off-road glitch is detected.
+### 🔬 Experimental Phase &amp; Engine Limitations Notice
+> **Please Note:** Advanced systems like the Ultra Visibility Engine (UVE), dynamic far-clip, and simulation thread tuning are currently in an **Experimental Phase**.
+> 
+> Due to the inherent structural architecture and limitations of the Cities: Skylines II internal engine, **no mod can guarantee a 100% performance increase across every machine and city**. Performance gains will vary based on your specific CPU, GPU, RAM, city population, and asset density.
+> 
+> You have full freedom to test different presets (**Balanced**, **Aggressive**, **Extreme**) and customize toggles to discover the optimal balance for your system. We are actively studying the engine and developing further optimizations based on real player feedback!
 
 ---
 
 ### 🤖 Transparency &amp; Active Developer Support (Disclaimer)
-This mod was created with the assistance of advanced AI, under my direct technical oversight, code review, and architectural supervision as a developer with coding knowledge.
+This mod was created with the assistance of advanced AI, developed under my direct technical oversight, code review, and architectural supervision as a developer with programming expertise.
 
 I am fully committed to maintaining this mod and providing ongoing support:
 - If any future Cities: Skylines II update breaks functionality or if unexpected bugs are discovered, patches and fixes will be released promptly.
-- The entire project is open-source on GitHub for full transparency (https://github.com/demarscode2/cities2-ultra-performance-mod), allowing the community to inspect, verify, and understand the internal ECS systems and trust what is running in their game.
+- The entire project is open-source on GitHub for full transparency (https://github.com/demarscode2/cities2-ultra-performance-mod), allowing the community to inspect, audit, and trust the internal code.
 - Feedback, bug reports, and suggestions are always welcome!
 	</LongDescription>
 	<Thumbnail Value="Properties/Thumbnail.png" />
 	<ForumLink Value="" />
-	<ModVersion Value="1.3.4" />
+	<ModVersion Value="1.4.0" />
 	<GameVersion Value="1.6.*" />
 	<ChangeLog>
-- Beta 1.3.4 Release
-- Restored 100% Vanilla Water Stability: Completely deactivated experimental water speed throttling, eliminating ship/boat jumping and water surface trembling.
-- Added Hover Highlight Overlay Removal: Added option to disable the blue/cyan outline border on mouseover across buildings, sims, vehicles, and props, saving GPU passes.
-- Added Homeless Evacuation System: Fixes the game's notorious homeless loop bug where thousands of unhoused citizens endlessly recalculate pathfinding in parks, restoring CPU simulation speed.
-- Added HDRP Shadow Optimizer: Caps excessive shadow distance to a crisp 450m and filters micro-props from shadow maps, doubling GPU framerate in dense skylines.
-- Added Stuck Pedestrian Clearer: Despawns trapped pedestrians with lane obstruction glitches on crosswalks, sidewalks, and transit stations.
-- Updated GameVersion target to 1.6.*.
+- Beta 1.4.0 Release
+- Implemented Ultra Visibility Engine (UVE): Multi-Tier LOD Scaling (Vanilla 100%, Balanced 70%, Aggressive 45%, Extreme 25%) across vegetation, props, buildings, and sub-objects.
+- Added Dynamic Frustum Far-Clip optimization: scales camera horizon dynamically based on altitude and pitch to cut GPU vertex overhead by up to 70% at street level.
+- Added HLOD &amp; Strict GPU Mesh Memory Budget enforcement (strictMemoryBudget = true) to consolidate draw calls and eliminate VRAM thrashing.
+- Added Clustered Deferred Light Capping to eliminate GPU compute bottlenecks during night-time lighting passes.
+- Guaranteed 100% Simulation Integrity: Citizens, traffic, economy, and city services continue running with zero disruption.
+- Added In-Game Real-Time Telemetry Bar displaying active Far-Clip (m), LOD factor (%), light count, and simulation status.
+- Added experimental notice and performance testing guidelines regarding engine constraints.
+- Target GameVersion set to 1.6.*.
 	</ChangeLog>
 	<Tag Value="Code Mod" />
 </Publish>

@@ -772,7 +772,7 @@ namespace UltraPerformanceMod
 
         // --- ABOUT TAB ---
         [SettingsUISection(TabAbout, GroupAbout)]
-        public string ModVersionInfo => "Ultra Performance & Simulation Booster v1.3.4 (Paradox Mods Ready)";
+        public string ModVersionInfo => "Ultra Performance & Simulation Booster v1.4.0 (Paradox Mods Ready)";
 
         [SettingsUISection(TabAbout, GroupAbout)]
         public string ModStatusInfo => $"Current Preset: {m_Preset} | Simulation Optimizations Active";
