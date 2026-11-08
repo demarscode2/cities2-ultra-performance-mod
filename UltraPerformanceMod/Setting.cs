@@ -67,6 +67,7 @@ namespace UltraPerformanceMod
         private bool m_InstantConstruction = false;
         private bool m_AutoEvacuateHomeless = true;
         private bool m_ServiceCoverageOptimizer = true;
+        private bool m_EnablePathfindQueueUnchoker = true;
 
         // Traffic & Pathfinding
         private bool m_DisableOutsideTaxis = true;
@@ -413,6 +414,21 @@ namespace UltraPerformanceMod
                     m_ServiceCoverageOptimizer = value;
                     m_Preset = PerformancePreset.Custom;
                     ServiceCoverageOptimizerSystem.Instance?.SetEnabled(value);
+                    ApplyAndSave();
+                }
+            }
+        }
+
+        [SettingsUISection(TabServices, GroupServices)]
+        public bool EnablePathfindQueueUnchoker
+        {
+            get => m_EnablePathfindQueueUnchoker;
+            set
+            {
+                if (m_EnablePathfindQueueUnchoker != value)
+                {
+                    m_EnablePathfindQueueUnchoker = value;
+                    m_Preset = PerformancePreset.Custom;
                     ApplyAndSave();
                 }
             }
@@ -787,9 +803,20 @@ namespace UltraPerformanceMod
             }
         }
 
+        [SettingsUIButton]
+        [SettingsUISection(TabActions, GroupActions)]
+        public bool UnchokePathfindQueueButton
+        {
+            set
+            {
+                Mod.log.Info("[UltraPerformanceMod] Action: UnchokePathfindQueueNow triggered.");
+                PathfindQueueUnchokerSystem.Instance?.UnchokePathfindQueueNow();
+            }
+        }
+
         // --- ABOUT TAB ---
         [SettingsUISection(TabAbout, GroupAbout)]
-        public string ModVersionInfo => "Ultra Performance & Simulation Booster v1.4.0 (Paradox Mods Ready)";
+        public string ModVersionInfo => "Ultra Performance & Simulation Booster v1.5.0 (Beta Ready)";
 
         [SettingsUISection(TabAbout, GroupAbout)]
         public string ModStatusInfo => $"Current Preset: {m_Preset} | Simulation Optimizations Active";
@@ -825,6 +852,7 @@ namespace UltraPerformanceMod
                     m_DisableTreeGrowth = false;
                     m_OptimizeShadows = false;
                     m_ServiceCoverageOptimizer = true;
+                    m_EnablePathfindQueueUnchoker = true;
                     break;
 
                 case PerformancePreset.Medium:
@@ -854,6 +882,7 @@ namespace UltraPerformanceMod
                     m_DisableTreeGrowth = true;
                     m_OptimizeShadows = true;
                     m_ServiceCoverageOptimizer = true;
+                    m_EnablePathfindQueueUnchoker = true;
                     break;
 
                 case PerformancePreset.Maximum:
@@ -883,6 +912,7 @@ namespace UltraPerformanceMod
                     m_DisableTreeGrowth = true;
                     m_OptimizeShadows = true;
                     m_ServiceCoverageOptimizer = true;
+                    m_EnablePathfindQueueUnchoker = true;
                     break;
 
                 case PerformancePreset.Custom:

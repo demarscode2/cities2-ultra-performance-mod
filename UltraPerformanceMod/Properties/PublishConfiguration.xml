@@ -3,14 +3,42 @@
 	<!-- Paradox Mods ID -->
 	<ModId Value="164241" />
 	<DisplayName Value="Ultra Performance &amp; Simulation Booster (Beta)" />
-	<ShortDescription Value="Maximize FPS &amp; simulation speed with UltraCore, Ultra Visibility Engine (UVE), multi-tier LOD scaling, dynamic far-clip, homeless unblocker, HDRP shadows &amp; 16 1-click cleanups." />
+	<ShortDescription Value="Maximize FPS &amp; simulation speed with UltraCore: Pathfind Queue Unchoker, Radix Service Coverage O(1), Ultra Visibility Engine (UVE) LOD culling, dynamic far-clip &amp; 17 1-click cleanups." />
 	<LongDescription>
-# ⚡ Ultra Performance &amp; Simulation Booster (Beta v1.4.0)
+# ⚡ Ultra Performance &amp; Simulation Booster (Beta v1.5.0)
 The definitive, all-in-one performance and simulation booster mod for Cities: Skylines II. Engineered on the native DOTS / ECS architecture to eliminate CPU simulation delays, reduce pathfinding overhead, and maximize GPU FPS in megalopolises with 700,000 to 1,000,000+ citizens.
 
 ---
 
-### 👁️ NEW: Ultra Visibility Engine (UVE) [Experimental]
+### ⚠️ IMPORTANT: Tested on Steam Open Beta for Performance
+> **Compatibility Notice:** This release (v1.5.0) was developed, tuned, and tested on the new **Cities: Skylines II Open Beta for Performance (`performance-test`)** on Steam.
+> 
+> Because the Open Beta introduces fundamental changes to the game's internal rendering pipeline, building LODs, and Virtual Texturing, **minor inconsistencies or unexpected behaviors may occur if played on the current live stable version**.
+> 
+> We have implemented dynamic backward-compatibility gates inside UltraCore, but we strongly recommend testing settings gradually. If you experience any issues on the stable branch, let us know on GitHub or Paradox Mods!
+
+---
+
+### ⚡ NEW in v1.5.0: Pathfind Queue Unchoker (Simulation Speed Unchoker)
+Eliminates the dreaded simulation slow-motion glitch where cars and cims crawl at 0.2x speed in cities above 300k to 700k+ population:
+- **Simulation Clock Priority:** Enforces `SimulationSystem.performancePreference = SimulationSpeed` to prevent GPU frametimes from starving simulation ticks.
+- **Frame Gap Unchoking:** In vanilla CS2, when path requests get stuck, `frameGap` drops below 48, causing the game to throttle simulation speed. UltraCore monitors queue gaps in real-time and proactively unchokes stalled requests.
+- **Orphan Entity Cleanup:** Automatically removes pending path components from despawned/deleted entities holding back the global simulation clock.
+- **Traffic Over Wildlife Prioritization:** Safely prunes low-priority ambient wildlife pathfinding during heavy transit spikes to preserve CPU worker threads for city traffic.
+- **1-Click Quick Action:** Includes a one-click trigger on the HUD to immediately unchoke the city-wide queue and restore full 3x simulation clock speed.
+
+---
+
+### 🎯 NEW in v1.5.0: Service Coverage Radix Engine (Anti-Stutter)
+Eradicates the notorious rhythmic 70–100ms CPU freeze occurring every 4.4 seconds in large cities:
+- **Monotone O(1) Radix Queue:** Replaces the game's inefficient $O(E \times B)$ linear-shift insertion sort in `ServiceCoverageSystem.ApplyCoverageJob` with a high-performance byte-radix priority queue.
+- **100% Mathematical Parity:** Produces identical coverage outcomes for parks, clinics, police, schools, and post offices as vanilla CS2, with zero visual or gameplay discrepancy.
+- **Burst-Compiled &amp; Zero-Alloc:** Zero garbage collection allocations, compiled directly to native machine code.
+- **Safe Harmony Transpiler:** Includes dynamic struct size validation (BuildingData: 24 bytes, CoverageElement: 32 bytes) with automatic fail-safe fallback.
+
+---
+
+### 👁️ Ultra Visibility Engine (UVE) [Experimental]
 Reduces redundant GPU geometry rendering and vertex shading without altering or removing simulation entities:
 - **Multi-Tier LOD Scaling (Distance LOD):** 4 discrete levels (**Vanilla 100%**, **Balanced 70%**, **Aggressive 45%**, and **Extreme 25%**) scaling `RenderingSystem.levelOfDetail`, `lodCrossFade`, and `QualitySettings.lodBias`. Simplifies distant vegetation, props, sub-objects, and buildings to lighter LOD variants as camera distance increases.
 - **Dynamic Frustum Far-Clip Optimization:** Dynamically scales the camera's far clip plane based on altitude and pitch against the horizon (from 10,000m down to 2,400m–3,500m at street level with smooth 500m transitions). Eliminates massive vertex processing loads on objects and terrain obscured by volumetric fog.
@@ -22,7 +50,6 @@ Reduces redundant GPU geometry rendering and vertex shading without altering or 
 
 ### 🧠 UltraCore Simulation &amp; CPU Optimization Engine
 - **Zero-Allocation ECS Queries:** Custom memory cache and optimized chunk iteration eliminate garbage collection (GC) spikes and CPU hitching.
-- **Pathfinding &amp; Thread Management:** Deep tuning of pathfind job dispatching and simulation thread allocation to maintain simulation clock speed under heavy city loads.
 - **Homeless Evacuation &amp; Loop Breaker:** Fixes the infamous Cities: Skylines II bug where thousands of homeless citizens get trapped camping in parks, flooding pathfinding threads with endless recalculation loops. Features both automated periodic evacuation and a 1-click Quick Action button.
 - **Stuck Pedestrian Clearer:** Detects and clears pedestrians trapped with lane obstruction glitches on crosswalks, sidewalks, and subway stairs.
 - **Smart Deadlock Breaker:** Intelligently resolves true traffic gridlocks while preserving vehicles waiting at valid red lights, crosswalks, and stops.
@@ -39,13 +66,13 @@ Reduces redundant GPU geometry rendering and vertex shading without altering or 
 
 ### 🖥️ In-Game Floating HUD (GameTopLeft ⚡)
 Access all features inside your city via the top-left toolbar button:
-- **16 Quick Action Cleanups:** One-click triggers for Homeless Evacuation, Stuck Pedestrians, Deadlocks, Trailers/Props Purge, Accidents, Garbage, Deathcare, Road Repairs, Park Maintenance, Health Cure, Mail Delivery, Animals Purge, Building Construction Completion, Foreign Taxis, and Parking Slots.
-- **Live Telemetry &amp; Settings:** Real-time feedback showing active Far-Clip distance, LOD factor percentage, deferred light count, and 100% simulation active confirmation.
+- **17 Quick Action Cleanups:** One-click triggers for Pathfind Queue Unchoking, Homeless Evacuation, Stuck Pedestrians, Deadlocks, Trailers/Props Purge, Accidents, Garbage, Deathcare, Road Repairs, Park Maintenance, Health Cure, Mail Delivery, Animals Purge, Building Construction Completion, Foreign Taxis, and Parking Slots.
+- **Live Telemetry &amp; Settings:** Real-time feedback showing Instant FPS, 1% Low, Frame Time ms, GC Memory, Pathfind Frame Gap (48/48), Simulation Clock Throttle %, and Far-Clip distance.
 
 ---
 
 ### 🔬 Experimental Phase &amp; Engine Limitations Notice
-> **Please Note:** Advanced systems like the Ultra Visibility Engine (UVE), dynamic far-clip, and simulation thread tuning are currently in an **Experimental Phase**.
+> **Please Note:** Advanced systems like the Pathfind Queue Unchoker, Ultra Visibility Engine (UVE), and dynamic far-clip are currently in an **Experimental Phase**.
 > 
 > Due to the inherent structural architecture and limitations of the Cities: Skylines II internal engine, **no mod can guarantee a 100% performance increase across every machine and city**. Performance gains will vary based on your specific CPU, GPU, RAM, city population, and asset density.
 > 
@@ -63,17 +90,17 @@ I am fully committed to maintaining this mod and providing ongoing support:
 	</LongDescription>
 	<Thumbnail Value="Properties/Thumbnail.png" />
 	<ForumLink Value="" />
-	<ModVersion Value="1.4.0" />
+	<ModVersion Value="1.5.0" />
 	<GameVersion Value="1.6.*" />
 	<ChangeLog>
-- Beta 1.4.0 Release
-- Implemented Ultra Visibility Engine (UVE): Multi-Tier LOD Scaling (Vanilla 100%, Balanced 70%, Aggressive 45%, Extreme 25%) across vegetation, props, buildings, and sub-objects.
-- Added Dynamic Frustum Far-Clip optimization: scales camera horizon dynamically based on altitude and pitch to cut GPU vertex overhead by up to 70% at street level.
-- Added HLOD &amp; Strict GPU Mesh Memory Budget enforcement (strictMemoryBudget = true) to consolidate draw calls and eliminate VRAM thrashing.
-- Added Clustered Deferred Light Capping to eliminate GPU compute bottlenecks during night-time lighting passes.
-- Guaranteed 100% Simulation Integrity: Citizens, traffic, economy, and city services continue running with zero disruption.
-- Added In-Game Real-Time Telemetry Bar displaying active Far-Clip (m), LOD factor (%), light count, and simulation status.
-- Added experimental notice and performance testing guidelines regarding engine constraints.
+- v1.5.0 Major Update
+- Tested and verified on Steam Open Beta for Performance ('performance-test').
+- Added Pathfind Queue Unchoker: Eliminates simulation slow-motion (0.2x clock lag) in 300k-700k+ cities by auto-clearing stuck path requests and enforcing CPU simulation tick priority.
+- Added 1-Click 'Unchoke Pathfinding Queue' action button in In-Game HUD and Settings.
+- Added Service Coverage Radix Engine: Replaces O(E*B) linear shift in ApplyCoverageJob with an O(1) monotone byte-radix priority queue, eliminating 70-100ms rhythmic stutters every 4.4s.
+- Fixed In-Game HUD toolbar button mounting in GameTopLeft.
+- Enhanced In-Game HUD Telemetry Bar: Live display of Pathfind Frame Gap, Simulation Clock %, Managed GC Memory, FPS, and 1% Low.
+- Added Steam Performance Open Beta compatibility notice and engine disclaimer.
 - Target GameVersion set to 1.6.*.
 	</ChangeLog>
 	<Tag Value="Code Mod" />

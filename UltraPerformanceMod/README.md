@@ -1,7 +1,7 @@
-# ⚡ Ultra Performance & Simulation Booster (Beta v1.4.0)
+# ⚡ Ultra Performance & Simulation Booster (Beta v1.5.0)
 ### *O Mod Definitivo de Desempenho, Renderização e Simulação para Cities: Skylines II*
 
-![Ultra Performance Booster](UltraPerformanceMod/Properties/Thumbnail.png)
+![Ultra Performance Booster](Properties/Thumbnail.png)
 
 O **Ultra Performance & Simulation Booster** foi desenvolvido sob medida para resolver os gargalos mais críticos do Cities: Skylines II: **queda de FPS, sobrecarga na renderização gráfica, lentidão extrema da simulação na CPU e congelamento do tráfego por cálculo excessivo de rotas (pathfinding)**.
 
@@ -12,9 +12,44 @@ Projetado sobre a arquitetura nativa ECS / DOTS e Unity HDRP, o mod oferece um e
 
 ---
 
-## 👁️ NOVIDADE: Ultra Visibility Engine (UVE) [Fase Experimental]
+## ⚠️ AVISO IMPORTANTE: Testado no Beta Aberto de Desempenho da Steam
 
-O **Ultra Visibility Engine (UVE)** é o novo subsistema interno focado em reduzir drasticamente o trabalho gráfico e de vértices desnecessário na GPU, preservando 100% da simulação da sua cidade:
+> [!IMPORTANT]
+> **Compatibilidade de Versão:**
+> Esta versão (**v1.5.0**) foi desenvolvida, ajustada e validada no novo **Beta Aberto de Desempenho do Cities: Skylines II (`performance-test`)** disponibilizado pela Colossal Order na Steam.
+> 
+> Como essa versão Beta inclui reformulações profundas nos modelos de LOD do jogo, texturização virtual (Virtual Texturing) e na renderização geral, **é possível que ocorram pequenas falhas, inconsistências visuais ou comportamentos inesperados na versão estável atual do jogo**.
+> 
+> Implementamos travas dinâmicas de compatibilidade dentro do UltraCore para proteger savegames em ambas as versões. Recomendamos testar as opções gradualmente no seu jogo!
+
+---
+
+## ⚡ NOVIDADE v1.5.0: Alívio da Fila de Pathfinding (Pathfind Queue Unchoker)
+
+Resolve o infame problema de cidades grandes (300k a 700k+ habitantes) onde os veículos e pedestres passam a se mover em **câmera lenta** (como se estivessem a 0.2x mesmo na velocidade 3x):
+
+* **Prioridade Total da CPU para o Relógio:** Trava `SimulationSystem.performancePreference = SimulationSpeed`, impedindo que oscilações de FPS na placa de vídeo roubem os ticks de tempo do jogo.
+* **Destravamento Automático de Gap de Quadros:** No jogo vanilla, quando uma requisição de caminho se perde, a fórmula nativa estrangula a velocidade do tempo global da cidade. O UltraCore detecta essa retenção em tempo real e destrava a fila.
+* **Purga de Entidades Órfãs:** Remove automaticamente requisições pendentes de cidadãos ou veículos que já foram deletados ou despachados, impedindo que travem o relógio global.
+* **Priorização do Trânsito Urbano:** Em picos severos de fila, poda temporariamente requisições de baixa prioridade de animais selvagens para reservar threads de trabalho para o tráfego da cidade.
+* **Botão de 1 Clique:** Botão direto no menu flutuante e configurações para desafogar imediatamente toda a fila e devolver a fluidez total da simulação.
+
+---
+
+## 🎯 NOVIDADE v1.5.0: Otimizador Radix de Cobertura de Serviços (Anti-Stutter)
+
+Elimina os congelamentos rítmicos de CPU (quedas de 70 a 100ms a cada 4.4 segundos) em cidades com centenas de parques e serviços públicos:
+
+* **Fila de Prioridade Monótona Byte-Radix $O(1)$:** Substitui o deslocamento linear ineficiente $O(E \times B)$ do método nativo `ApplyCoverageJob` por um algoritmo Radix de alto desempenho.
+* **100% de Paridade Matemática:** Calcula a cobertura de parques, postos de saúde, polícia, bombeiros e correios com exatidão matemática idêntica ao jogo original, sem discrepâncias.
+* **Compilado com Unity Burst & Zero-Alloc:** Código nativo puro com consumo nulo de memória gerenciada.
+* **Patch Seguro via Harmony:** Valida o tamanho das estruturas em memória dinamicamente antes de anexar o patch, com retorno automático ao código nativo em caso de incompatibilidade futura.
+
+---
+
+## 👁️ Ultra Visibility Engine (UVE) [Fase Experimental]
+
+O **Ultra Visibility Engine (UVE)** é o subsistema interno focado em reduzir drasticamente o trabalho gráfico e de vértices desnecessário na GPU, preservando 100% da simulação da sua cidade:
 
 * **Controle Multinível de LOD de Distância:**
   * 🟢 **Vanilla (100%):** Distâncias de renderização e detalhe originais do jogo.
@@ -32,11 +67,10 @@ O **Ultra Visibility Engine (UVE)** é o novo subsistema interno focado em reduz
 
 > [!WARNING]
 > **Transparência e Expectativas Reais de Desempenho:**
-> * Recursos como o **Ultra Visibility Engine (UVE)**, o escalonamento multinível de LOD e o ajuste profundo de threads de simulação estão em **Fase Experimental**.
+> * Recursos como o **Pathfind Queue Unchoker**, o **Ultra Visibility Engine (UVE)** e o ajuste profundo de threads de simulação estão em **Fase Experimental**.
 > * **Não é garantido que o mod aumentará o desempenho em 100% em todas as configurações de computador ou cidades.** O próprio motor do Cities: Skylines II possui limitações arquiteturais internas e gargalos estruturais de CPU que nenhum mod consegue contornar inteiramente.
 > * Os ganhos variam substancialmente dependendo do modelo do seu processador, placa de vídeo, velocidade das memórias RAM, tamanho da população e densidade de construções.
 > * **Liberdade de Configuração:** O jogador tem total liberdade para navegar no painel e testar os diferentes perfis (**Básico**, **Equilibrado**, **Agressivo**, **Extremo**) e interruptores individuais para descobrir qual combinação entrega a melhor experiência visual e de fluidez na sua máquina.
-> * Continuamos estudando continuamente o código do jogo e desenvolvendo melhorias conforme os testes da comunidade!
 
 ---
 
@@ -54,25 +88,17 @@ O **Ultra Visibility Engine (UVE)** é o novo subsistema interno focado em reduz
 * **Otimizador de Sombras HDRP:** Limita sombras exageradas além de 450m e filtra micro-props das passagens de sombra, liberando até 40% da carga de rasterização da GPU.
 * **Remoção do Contorno Azul ao Passar o Mouse:** Remove a borda ciano/azul ao passar o cursor sobre edifícios, cidadãos e veículos, economizando uma passagem completa de geometria e pós-processamento por frame (`OutlinesWorldUIPass`).
 * **Vegetação e Árvores:** Desativa o balanço de vento nos vértices das folhas e pausa o envelhecimento visual das árvores, economizando processamento sem afetar a silvicultura.
-* **Água 100% Estável (Vanilla):** Removidos limitadores agressivos de velocidade de água que provocavam trepidações e saltos de barcos; hidrodinâmica mantida lisa e estável.
+* **Água 100% Estável (Vanilla):** Hidrodinâmica nativa mantida lisa e estável, sem saltos de embarcações.
 
 ---
 
 ## 🖥️ Painel In-Game Exclusivo (HUD Topo Esquerdo ⚡)
 
 Clique no ícone de raio (**⚡**) na barra superior esquerda para acessar instantaneamente dentro da cidade:
-* **16 Ações Rápidas em 1 Clique:**
-  * Desobstruir Trânsito, Evacuar Sem-Teto, Limpar Pedestres Presos, Limpar Reboques/Props Órfãos, Limpar Acidentes, Limpar Lixo, Coleta Funerária, Manutenção de Asfalto, Manutenção de Parques, Socorrer Doentes, Entregar Cartas, Limpar Animais, Concluir Obras, Limpar Táxis Externos, Limpar Tráfego Falso e Limpar Vagas Travadas.
-* **Ajustes de Perfil em Tempo Real:** Alterne rapidamente entre os modos Vanilla, Equilibrado, Agressivo e Extremo.
-* **Faixa de Telemetria ao Vivo:** Visualize em tempo real o Far-Clip calculado (em metros), o fator de LOD (%), a quantidade de luzes ativas e a confirmação de simulação ativa.
-
----
-
-## ⚠️ Recomendações de Uso
-* 💾 **Faça Backup do seu Save:** Embora todas as operações do mod utilizem APIs nativas e seguras da ECS (`EntityManager`), sempre salve uma cópia do seu save antes de realizar ações de limpeza em escala metropolitana.
-* **Comportamentos Normais Pós-Limpeza:**
-  * *Caminhões pequenos temporariamente:* Ao limpar trailers órfãos, cavalos mecânicos podem rodar sozinhos por alguns instantes até a malha se atualizar na velocidade 1x.
-  * *Bicicletas sem condutor visível:* Caso ative a opção "Ocultar Cidadãos (NPCs)", ative também "Ocultar Bicicletas" e "Ocultar Motocicletas" para evitar que veículos de duas rodas fiquem visíveis sem o piloto.
+* **17 Ações Rápidas em 1 Clique:**
+  * Desafogar Fila de Pathfinding, Desobstruir Trânsito, Evacuar Sem-Teto, Limpar Pedestres Presos, Limpar Reboques/Props Órfãos, Limpar Acidentes, Limpar Lixo, Coleta Funerária, Manutenção de Asfalto, Manutenção de Parques, Socorrer Doentes, Entregar Cartas, Limpar Animais, Concluir Obras, Limpar Táxis Externos, Limpar Tráfego Falso e Limpar Vagas Travadas.
+* **Faixa de Telemetria ao Vivo:**
+  * FPS Instantâneo, FPS Médio (120q), 1% Low, Tempo de Quadro (ms), Memória GC (MB), Eficiência do Relógio de Simulação (%) e Gap da Fila de Pathfinding (48/48).
 
 ---
 

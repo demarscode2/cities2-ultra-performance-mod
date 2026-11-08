@@ -101,6 +101,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Fixes the infamous CS2 pathfind loop bug: periodically evacuates stranded homeless cims that overload pathfind threads in parks and squares." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ServiceCoverageOptimizer)), "Service Coverage Radix Optimizer (Anti-Stutter)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ServiceCoverageOptimizer)), "Replaces the game's inefficient linear-shift sort in ApplyCoverageJob with an exact monotone byte-radix O(1) queue. Eliminates rhythmic 70-100ms CPU hitches every 4.4s in cities with hundreds of parks, healthcare, police, and mail providers." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.EnablePathfindQueueUnchoker)), "Pathfind Queue Unchoker [EXPERIMENTAL]" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.EnablePathfindQueueUnchoker)), "Prevents simulation slowdown in large cities (300k-700k+ cims). Enforces CPU simulation priority and purges orphaned/stuck route requests that drag down the world clock." },
 
                 // Traffic
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableOutsideTaxis)), "Block Outside Taxis" },
@@ -171,6 +173,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.PurgeHomelessButton)), "Instantly clears homeless households stuck in pathfinding calculation loops, restoring CPU simulation speed." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ClearStuckPedestriansButton)), "Clear Stuck Pedestrians" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ClearStuckPedestriansButton)), "Despawns pedestrians trapped with lane obstruction glitches on sidewalks or transit stops." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UnchokePathfindQueueButton)), "Unchoke Pathfinding Queue Now" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.UnchokePathfindQueueButton)), "Instantly clears stuck pending route requests across the city, freeing the frame gap lock and restoring full simulation speed." },
 
                 // About
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ModVersionInfo)), "Version" },

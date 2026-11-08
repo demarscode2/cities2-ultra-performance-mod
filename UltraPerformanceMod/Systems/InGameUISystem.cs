@@ -40,6 +40,11 @@ namespace UltraPerformanceMod.Systems
         private ValueBinding<bool> m_AutoEvacuateHomelessBinding = default!;
         private ValueBinding<bool> m_ServiceCoverageOptimizerBinding = default!;
         private ValueBinding<string> m_ServiceCoverageStatusBinding = default!;
+        private ValueBinding<bool> m_EnablePathfindQueueUnchokerBinding = default!;
+        private ValueBinding<int> m_PathfindFrameGapBinding = default!;
+        private ValueBinding<float> m_PathfindThrottlePercentBinding = default!;
+        private ValueBinding<int> m_PathfindPendingRequestsBinding = default!;
+        private ValueBinding<int> m_PathfindTotalUnchokedBinding = default!;
         private ValueBinding<bool> m_AutoClearDeadlocksBinding = default!;
         private ValueBinding<bool> m_HideNotificationIconsBinding = default!;
 
@@ -99,6 +104,11 @@ namespace UltraPerformanceMod.Systems
             AddBinding(m_AutoEvacuateHomelessBinding = new ValueBinding<bool>(Group, "AutoEvacuateHomeless", s?.AutoEvacuateHomeless ?? true));
             AddBinding(m_ServiceCoverageOptimizerBinding = new ValueBinding<bool>(Group, "ServiceCoverageOptimizer", s?.ServiceCoverageOptimizer ?? true));
             AddBinding(m_ServiceCoverageStatusBinding = new ValueBinding<string>(Group, "ServiceCoverageStatus", ServiceCoverageOptimizerSystem.StatusString));
+            AddBinding(m_EnablePathfindQueueUnchokerBinding = new ValueBinding<bool>(Group, "EnablePathfindQueueUnchoker", s?.EnablePathfindQueueUnchoker ?? true));
+            AddBinding(m_PathfindFrameGapBinding = new ValueBinding<int>(Group, "PathfindFrameGap", 48));
+            AddBinding(m_PathfindThrottlePercentBinding = new ValueBinding<float>(Group, "PathfindThrottlePercent", 100f));
+            AddBinding(m_PathfindPendingRequestsBinding = new ValueBinding<int>(Group, "PathfindPendingRequests", 0));
+            AddBinding(m_PathfindTotalUnchokedBinding = new ValueBinding<int>(Group, "PathfindTotalUnchoked", 0));
             AddBinding(m_AutoClearDeadlocksBinding = new ValueBinding<bool>(Group, "AutoClearDeadlocks", s?.AutoClearDeadlocks ?? false));
             AddBinding(m_HideNotificationIconsBinding = new ValueBinding<bool>(Group, "HideNotificationIcons", s?.HideNotificationIcons ?? false));
 
@@ -237,6 +247,9 @@ namespace UltraPerformanceMod.Systems
                 case "ServiceCoverageOptimizer":
                     s.ServiceCoverageOptimizer = value;
                     ServiceCoverageOptimizerSystem.Instance?.SetEnabled(value);
+                    break;
+                case "EnablePathfindQueueUnchoker":
+                    s.EnablePathfindQueueUnchoker = value;
                     break;
             }
 
@@ -380,6 +393,15 @@ namespace UltraPerformanceMod.Systems
 
             m_ServiceCoverageOptimizerBinding.Update(Mod.Settings?.ServiceCoverageOptimizer ?? true);
             m_ServiceCoverageStatusBinding.Update(ServiceCoverageOptimizerSystem.StatusString);
+
+            if (PathfindQueueUnchokerSystem.Instance != null)
+            {
+                var pqs = PathfindQueueUnchokerSystem.Instance;
+                m_PathfindFrameGapBinding.Update(pqs.LastFrameGap);
+                m_PathfindThrottlePercentBinding.Update(pqs.ThrottleEfficiency);
+                m_PathfindPendingRequestsBinding.Update(pqs.LastPendingRequests);
+                m_PathfindTotalUnchokedBinding.Update(pqs.TotalUnchokedRequests);
+            }
         }
 
         public void ExecuteQuickAction(string actionKey)
@@ -468,6 +490,11 @@ namespace UltraPerformanceMod.Systems
                         SetStatusMessage($"[OK] {peds} pedestres travados em cal\u00E7adas/esta\u00E7\u00F5es foram liberados!");
                         break;
 
+                    case "UnchokePathfindQueue":
+                        int unchoked = PathfindQueueUnchokerSystem.Instance?.UnchokePathfindQueueNow() ?? 0;
+                        SetStatusMessage($"[OK] Fila de rotas desafogada! {unchoked} requisi\u00E7\u00F5es pendentes destravadas.");
+                        break;
+
                     default:
                         SetStatusMessage($"A\u00E7\u00E3o desconhecida: {actionKey}");
                         break;
@@ -501,6 +528,7 @@ namespace UltraPerformanceMod.Systems
             m_AutoEvacuateHomelessBinding.Update(s.AutoEvacuateHomeless);
             m_ServiceCoverageOptimizerBinding.Update(s.ServiceCoverageOptimizer);
             m_ServiceCoverageStatusBinding.Update(ServiceCoverageOptimizerSystem.StatusString);
+            m_EnablePathfindQueueUnchokerBinding.Update(s.EnablePathfindQueueUnchoker);
             m_AutoClearDeadlocksBinding.Update(s.AutoClearDeadlocks);
             m_HideNotificationIconsBinding.Update(s.HideNotificationIcons);
 

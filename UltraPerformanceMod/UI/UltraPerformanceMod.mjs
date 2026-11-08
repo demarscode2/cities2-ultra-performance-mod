@@ -3,7 +3,7 @@
  *
  * Id: UltraPerformanceMod
  * Author: Antigravity
- * Version: 1.3.4
+ * Version: 1.5.0
  * Dependencies: 
  */
 
@@ -37,6 +37,11 @@ const uveMaxLights$ = api.bindValue(Group, "UveMaxLights", 8192);
 const autoEvacuateHomeless$ = api.bindValue(Group, "AutoEvacuateHomeless", true);
 const serviceCoverageOptimizer$ = api.bindValue(Group, "ServiceCoverageOptimizer", true);
 const serviceCoverageStatus$ = api.bindValue(Group, "ServiceCoverageStatus", "Ativo");
+const enablePathfindQueueUnchoker$ = api.bindValue(Group, "EnablePathfindQueueUnchoker", true);
+const pathfindFrameGap$ = api.bindValue(Group, "PathfindFrameGap", 48);
+const pathfindThrottlePercent$ = api.bindValue(Group, "PathfindThrottlePercent", 100);
+const pathfindPendingRequests$ = api.bindValue(Group, "PathfindPendingRequests", 0);
+const pathfindTotalUnchoked$ = api.bindValue(Group, "PathfindTotalUnchoked", 0);
 const autoClearDeadlocks$ = api.bindValue(Group, "AutoClearDeadlocks", false);
 const hideNotificationIcons$ = api.bindValue(Group, "HideNotificationIcons", false);
 
@@ -130,6 +135,10 @@ const renderCardIcon = (key) => {
             return React.createElement("svg", { viewBox: "0 0 24 24", width: "18rem", height: "18rem", fill: "#00e676" },
                 React.createElement("path", { d: "M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z" })
             );
+        case "UnchokePathfindQueue":
+            return React.createElement("svg", { viewBox: "0 0 24 24", width: "18rem", height: "18rem", fill: "#00e5ff" },
+                React.createElement("path", { d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" })
+            );
         default:
             return React.createElement("svg", { viewBox: "0 0 24 24", width: "18rem", height: "18rem", fill: "#4287f5" },
                 React.createElement("circle", { cx: "12", cy: "12", r: "8" })
@@ -219,6 +228,11 @@ const FloatingPanel = () => {
         const autoEvacuateHomeless = api.useValue(autoEvacuateHomeless$);
         const serviceCoverageOptimizer = api.useValue(serviceCoverageOptimizer$);
         const serviceCoverageStatus = api.useValue(serviceCoverageStatus$);
+        const enablePathfindQueueUnchoker = api.useValue(enablePathfindQueueUnchoker$);
+        const pathfindFrameGap = api.useValue(pathfindFrameGap$);
+        const pathfindThrottlePercent = api.useValue(pathfindThrottlePercent$);
+        const pathfindPendingRequests = api.useValue(pathfindPendingRequests$);
+        const pathfindTotalUnchoked = api.useValue(pathfindTotalUnchoked$);
         const autoClearDeadlocks = api.useValue(autoClearDeadlocks$);
         const hideNotificationIcons = api.useValue(hideNotificationIcons$);
 
@@ -379,6 +393,11 @@ const FloatingPanel = () => {
                                         title: "Limpar Vagas Abandonadas",
                                         desc: "Desocupa estacionamentos e garagens",
                                         actionKey: "PurgeParkedCars"
+                                    }),
+                                    React.createElement(ActionCard, {
+                                        title: "Desafogar Fila de Pathfinding",
+                                        desc: "Destrava rotas pendentes e restaura a velocidade m\u00E1xima da simula\u00E7\u00E3o (300k-700k+ hab)",
+                                        actionKey: "UnchokePathfindQueue"
                                     })
                                 )
                             ),
@@ -661,7 +680,8 @@ const FloatingPanel = () => {
                                 React.createElement("div", { className: "upm-group-title" }, "Automa\u00E7\u00F5es Urbanas (Al\u00EDvio de CPU)"),
                                 [
                                     { label: "Evacua\u00E7\u00E3o Autom\u00E1tica de Sem-Teto", sub: "Despacha periodicamente sem-teto que travam filas de pathfinding", key: "AutoEvacuateHomeless", val: autoEvacuateHomeless },
-                                    { label: "Otimizador Radix de Cobertura (Anti-Stutter)", sub: "Fila Radix O(1) para Parques e Servi\u00E7os. Elimina travamento r\u00EDtmico de 70-100ms", key: "ServiceCoverageOptimizer", val: serviceCoverageOptimizer }
+                                    { label: "Otimizador Radix de Cobertura (Anti-Stutter)", sub: "Fila Radix O(1) para Parques e Servi\u00E7os. Elimina travamento r\u00EDtmico de 70-100ms", key: "ServiceCoverageOptimizer", val: serviceCoverageOptimizer },
+                                    { label: "Al\u00EDvio da Fila de Pathfinding [EXPERIMENTAL]", sub: "For\u00E7a prioridade do rel\u00F3gio de simula\u00E7\u00E3o e limpa rotas presas (acelera cidades 300k-700k+)", key: "EnablePathfindQueueUnchoker", val: enablePathfindQueueUnchoker }
                                 ].map((item) =>
                                     React.createElement(
                                         "div",
@@ -870,6 +890,88 @@ const FloatingPanel = () => {
                                         checked: serviceCoverageOptimizer,
                                         onChange: (val) => api.trigger(Group, "ToggleServiceCoverageOptimizer", val)
                                     })
+                                )
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "upm-group-section upm-uve-section", style: { marginTop: "14rem" } },
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-uve-header" },
+                                    React.createElement("span", { className: "upm-badge-uve" }, "PATHFIND UNCHOKER"),
+                                    React.createElement("span", { className: enablePathfindQueueUnchoker ? "upm-badge-active" : "upm-badge-experimental" }, enablePathfindQueueUnchoker ? "ATIVO" : "DESATIVADO"),
+                                    React.createElement("div", { className: "upm-group-title", style: { margin: 0 } }, "Al\u00EDvio da Fila de Simula\u00E7\u00E3o")
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-group-subtitle" },
+                                    "For\u00E7a prioridade da simula\u00E7\u00E3o na CPU e elimina o afogamento do rel\u00F3gio do jogo (SimulationSystem). Impede que ve\u00EDculos e cidad\u00E3os andem em c\u00E2mera lenta em metr\u00F3poles."
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-telemetry-grid", style: { marginTop: "10rem" } },
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "Gap de Quadros"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val " + (pathfindFrameGap >= 40 ? "upm-metric-good" : (pathfindFrameGap >= 20 ? "upm-metric-warn" : "upm-metric-bad")) },
+                                            (pathfindFrameGap !== undefined ? pathfindFrameGap : "--"),
+                                            React.createElement("span", { className: "upm-metric-unit" }, "/ 48")
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "Velocidade do Rel\u00F3gio"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val " + (pathfindThrottlePercent >= 90 ? "upm-metric-good" : (pathfindThrottlePercent >= 50 ? "upm-metric-warn" : "upm-metric-bad")) },
+                                            (pathfindThrottlePercent !== undefined ? pathfindThrottlePercent.toFixed(0) : "100"),
+                                            React.createElement("span", { className: "upm-metric-unit" }, "%")
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "Fila Pendente"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val" },
+                                            (pathfindPendingRequests !== undefined ? pathfindPendingRequests : 0)
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-metric-card" },
+                                        React.createElement("div", { className: "upm-metric-title" }, "Total Destravado"),
+                                        React.createElement(
+                                            "div",
+                                            { className: "upm-metric-val upm-metric-good" },
+                                            (pathfindTotalUnchoked !== undefined ? pathfindTotalUnchoked : 0)
+                                        )
+                                    )
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { style: { marginTop: "10rem", display: "flex", justifyContent: "flex-end" } },
+                                    React.createElement(
+                                        "button",
+                                        {
+                                            className: "upm-btn-primary",
+                                            onClick: () => api.trigger(Group, "ExecuteQuickAction", "UnchokePathfindQueue")
+                                        },
+                                        React.createElement("svg", {
+                                            viewBox: "0 0 24 24",
+                                            width: "14rem",
+                                            height: "14rem",
+                                            fill: "currentColor"
+                                        },
+                                            React.createElement("path", { d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" })
+                                        ),
+                                        "Desafogar Fila Agora"
+                                    )
                                 )
                             )
                         ),

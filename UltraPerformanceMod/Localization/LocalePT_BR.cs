@@ -101,6 +101,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Resolve o infame travamento de CPU do CS2: despacha periodicamente famílias sem-teto que entram em loops infinitos de busca de abrigo." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ServiceCoverageOptimizer)), "Otimizador Radix de Cobertura de Serviços (Anti-Stutter)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ServiceCoverageOptimizer)), "Substitui o algoritmo ineficiente de deslocamento linear do jogo (ApplyCoverageJob) por uma fila de prioridade monótona byte-radix O(1). Elimina o congelamento rítmico da CPU (70-100ms a cada 4.4s) em cidades com centenas de parques, clínicas, delegacias e correios." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.EnablePathfindQueueUnchoker)), "Alívio da Fila de Pathfinding (Pathfind Queue Unchoker) [EXPERIMENTAL]" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.EnablePathfindQueueUnchoker)), "Elimina o estrangulamento da velocidade de simulação em cidades de 300k a 700k+ cidadãos. Força prioridade do relógio de simulação na CPU e purga automaticamente requisições de rotas travadas/órfãs que congelam o tempo do jogo." },
 
                 // Trânsito
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableOutsideTaxis)), "Bloquear Táxis Externos" },
@@ -171,6 +173,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.PurgeHomelessButton)), "Evacua instantaneamente todas as famílias sem-teto acampadas em praças ou presas em cálculos de caminho, aliviando o uso de CPU." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ClearStuckPedestriansButton)), "Desobstruir Pedestres Travados" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ClearStuckPedestriansButton)), "Libera pedestres travados em calçadas, faixas ou estações de metrô." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UnchokePathfindQueueButton)), "Desafogar Fila de Pathfinding Agora" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.UnchokePathfindQueueButton)), "Destrava instantaneamente a fila global de rotas da cidade, cancelando pedidos pendentes presos e restaurando a velocidade normal dos veículos e pedestres." },
 
                 // Sobre
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ModVersionInfo)), "Versão" },
