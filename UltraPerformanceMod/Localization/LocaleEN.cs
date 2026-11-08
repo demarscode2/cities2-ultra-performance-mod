@@ -99,6 +99,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.InstantConstruction)), "Instantly finalizes newly zoned buildings and level-up upgrades without cranes or scaffold delays." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Automatic Homeless Evacuation" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Fixes the infamous CS2 pathfind loop bug: periodically evacuates stranded homeless cims that overload pathfind threads in parks and squares." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ServiceCoverageOptimizer)), "Service Coverage Radix Optimizer (Anti-Stutter)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ServiceCoverageOptimizer)), "Replaces the game's inefficient linear-shift sort in ApplyCoverageJob with an exact monotone byte-radix O(1) queue. Eliminates rhythmic 70-100ms CPU hitches every 4.4s in cities with hundreds of parks, healthcare, police, and mail providers." },
 
                 // Traffic
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableOutsideTaxis)), "Block Outside Taxis" },

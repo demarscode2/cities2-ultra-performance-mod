@@ -35,6 +35,8 @@ const uveFarClip$ = api.bindValue(Group, "UveFarClip", 10000);
 const uveLodPercent$ = api.bindValue(Group, "UveLodPercent", 100);
 const uveMaxLights$ = api.bindValue(Group, "UveMaxLights", 8192);
 const autoEvacuateHomeless$ = api.bindValue(Group, "AutoEvacuateHomeless", true);
+const serviceCoverageOptimizer$ = api.bindValue(Group, "ServiceCoverageOptimizer", true);
+const serviceCoverageStatus$ = api.bindValue(Group, "ServiceCoverageStatus", "Ativo");
 const autoClearDeadlocks$ = api.bindValue(Group, "AutoClearDeadlocks", false);
 const hideNotificationIcons$ = api.bindValue(Group, "HideNotificationIcons", false);
 
@@ -215,6 +217,8 @@ const FloatingPanel = () => {
         const uveLodPercent = api.useValue(uveLodPercent$);
         const uveMaxLights = api.useValue(uveMaxLights$);
         const autoEvacuateHomeless = api.useValue(autoEvacuateHomeless$);
+        const serviceCoverageOptimizer = api.useValue(serviceCoverageOptimizer$);
+        const serviceCoverageStatus = api.useValue(serviceCoverageStatus$);
         const autoClearDeadlocks = api.useValue(autoClearDeadlocks$);
         const hideNotificationIcons = api.useValue(hideNotificationIcons$);
 
@@ -656,7 +660,8 @@ const FloatingPanel = () => {
                                 { className: "upm-group-section" },
                                 React.createElement("div", { className: "upm-group-title" }, "Automa\u00E7\u00F5es Urbanas (Al\u00EDvio de CPU)"),
                                 [
-                                    { label: "Evacua\u00E7\u00E3o Autom\u00E1tica de Sem-Teto", sub: "Despacha periodicamente sem-teto que travam filas de pathfinding", key: "AutoEvacuateHomeless", val: autoEvacuateHomeless }
+                                    { label: "Evacua\u00E7\u00E3o Autom\u00E1tica de Sem-Teto", sub: "Despacha periodicamente sem-teto que travam filas de pathfinding", key: "AutoEvacuateHomeless", val: autoEvacuateHomeless },
+                                    { label: "Otimizador Radix de Cobertura (Anti-Stutter)", sub: "Fila Radix O(1) para Parques e Servi\u00E7os. Elimina travamento r\u00EDtmico de 70-100ms", key: "ServiceCoverageOptimizer", val: serviceCoverageOptimizer }
                                 ].map((item) =>
                                     React.createElement(
                                         "div",
@@ -828,6 +833,43 @@ const FloatingPanel = () => {
                                         ),
                                         "Esvaziar Smart Cache"
                                     )
+                                )
+                            ),
+                            // Section: Service Coverage Radix Engine
+                            React.createElement(
+                                "div",
+                                { className: "upm-group-section upm-uve-section" },
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-uve-header" },
+                                    React.createElement("span", { className: "upm-badge-uve" }, "SERVICE COVERAGE RADIX"),
+                                    React.createElement("span", { className: serviceCoverageOptimizer ? "upm-badge-active" : "upm-badge-experimental" }, serviceCoverageOptimizer ? "ATIVO" : "DESATIVADO"),
+                                    React.createElement("div", { className: "upm-group-title", style: { margin: 0 } }, "Otimizador de Parques e Servi\u00E7os")
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-group-subtitle" },
+                                    "Substitui o deslocamento linear O(E\u00D7B) no ApplyCoverageJob por uma fila de prioridade mon\u00F3tona byte-radix O(1). Elimina travamentos r\u00EDtmicos de CPU (70-100ms a cada 4.4s)."
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-status-row", style: { marginTop: "8rem" } },
+                                    React.createElement("span", { className: "upm-status-label" }, "Status do Algoritmo:"),
+                                    React.createElement("span", { className: "upm-status-val " + (serviceCoverageOptimizer ? "upm-metric-good" : "upm-metric-warn") }, serviceCoverageStatus)
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "upm-row", style: { marginTop: "10rem" } },
+                                    React.createElement(
+                                        "div",
+                                        { className: "upm-row-text" },
+                                        React.createElement("span", { className: "upm-row-label" }, "Fila Radix O(1) de Cobertura"),
+                                        React.createElement("span", { className: "upm-row-sub" }, "100% de precis\u00E3o matem\u00E1tica id\u00EAntica ao jogo vanilla. Compat\u00EDvel com vers\u00E3o est\u00E1vel e beta.")
+                                    ),
+                                    React.createElement(ToggleSwitch, {
+                                        checked: serviceCoverageOptimizer,
+                                        onChange: (val) => api.trigger(Group, "ToggleServiceCoverageOptimizer", val)
+                                    })
                                 )
                             )
                         ),

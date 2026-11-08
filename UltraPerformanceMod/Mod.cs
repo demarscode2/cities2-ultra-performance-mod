@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Reflection;
 using Colossal.IO.AssetDatabase;
 using Colossal.Localization;
 using Colossal.Logging;
@@ -21,6 +23,7 @@ namespace UltraPerformanceMod
 
         public void OnLoad(UpdateSystem updateSystem)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveHarmonyAssembly;
             log.Info($"[{ModId}] OnLoad started - Version {Version}");
 
             try
@@ -67,6 +70,7 @@ namespace UltraPerformanceMod
                 updateSystem.UpdateAt<TrafficDeadlockBreakerSystem>(SystemUpdatePhase.GameSimulation);
                 updateSystem.UpdateAt<HomelessOptimizerSystem>(SystemUpdatePhase.GameSimulation);
                 updateSystem.UpdateAt<StuckPedestrianOptimizerSystem>(SystemUpdatePhase.GameSimulation);
+                updateSystem.UpdateAt<ServiceCoverageOptimizerSystem>(SystemUpdatePhase.GameSimulation);
                 updateSystem.UpdateAt<WaterSimulationOptimizerSystem>(SystemUpdatePhase.GameSimulation);
 
                 // Phase: MainLoop (Graphics & Volumes)
@@ -108,6 +112,7 @@ namespace UltraPerformanceMod
             log.Info($"[{ModId}] OnDispose triggered.");
             try
             {
+                ServiceCoverageOptimizerSystem.RemovePatch();
                 UltraPerformanceMod.Core.UltraCoreEngine.Instance.Shutdown();
                 if (Settings != null)
                 {
@@ -119,6 +124,40 @@ namespace UltraPerformanceMod
             {
                 log.Warn($"[{ModId}] Exception during OnDispose: {ex.Message}");
             }
+            finally
+            {
+                AppDomain.CurrentDomain.AssemblyResolve -= ResolveHarmonyAssembly;
+            }
+        }
+
+        private static Assembly? ResolveHarmonyAssembly(object? sender, ResolveEventArgs args)
+        {
+            if (args.Name.StartsWith("0Harmony", StringComparison.OrdinalIgnoreCase))
+            {
+                // Check already loaded assemblies first
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    if (asm.GetName().Name.Equals("0Harmony", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return asm;
+                    }
+                }
+
+                // Try to load from local mod folder
+                try
+                {
+                    string modDir = Path.GetDirectoryName(typeof(Mod).Assembly.Location) ?? "";
+                    string localPath = Path.Combine(modDir, "0Harmony.dll");
+                    if (File.Exists(localPath))
+                    {
+                        return Assembly.LoadFrom(localPath);
+                    }
+                }
+                catch
+                {
+                }
+            }
+            return null;
         }
     }
 }

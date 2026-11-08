@@ -38,6 +38,8 @@ namespace UltraPerformanceMod.Systems
         private ValueBinding<float> m_UveLodPercentBinding = default!;
         private ValueBinding<int> m_UveMaxLightsBinding = default!;
         private ValueBinding<bool> m_AutoEvacuateHomelessBinding = default!;
+        private ValueBinding<bool> m_ServiceCoverageOptimizerBinding = default!;
+        private ValueBinding<string> m_ServiceCoverageStatusBinding = default!;
         private ValueBinding<bool> m_AutoClearDeadlocksBinding = default!;
         private ValueBinding<bool> m_HideNotificationIconsBinding = default!;
 
@@ -95,6 +97,8 @@ namespace UltraPerformanceMod.Systems
             AddBinding(m_UveLodPercentBinding = new ValueBinding<float>(Group, "UveLodPercent", 100f));
             AddBinding(m_UveMaxLightsBinding = new ValueBinding<int>(Group, "UveMaxLights", 8192));
             AddBinding(m_AutoEvacuateHomelessBinding = new ValueBinding<bool>(Group, "AutoEvacuateHomeless", s?.AutoEvacuateHomeless ?? true));
+            AddBinding(m_ServiceCoverageOptimizerBinding = new ValueBinding<bool>(Group, "ServiceCoverageOptimizer", s?.ServiceCoverageOptimizer ?? true));
+            AddBinding(m_ServiceCoverageStatusBinding = new ValueBinding<string>(Group, "ServiceCoverageStatus", ServiceCoverageOptimizerSystem.StatusString));
             AddBinding(m_AutoClearDeadlocksBinding = new ValueBinding<bool>(Group, "AutoClearDeadlocks", s?.AutoClearDeadlocks ?? false));
             AddBinding(m_HideNotificationIconsBinding = new ValueBinding<bool>(Group, "HideNotificationIcons", s?.HideNotificationIcons ?? false));
 
@@ -133,6 +137,7 @@ namespace UltraPerformanceMod.Systems
             AddBinding(new TriggerBinding<int>(Group, "SetTreeLodMode", SetTreeLodModeAction));
             AddBinding(new TriggerBinding<int>(Group, "SetVisibilityMode", SetVisibilityModeAction));
             AddBinding(new TriggerBinding<string, bool>(Group, "ToggleUveSetting", ToggleUveSettingAction));
+            AddBinding(new TriggerBinding<bool>(Group, "ToggleServiceCoverageOptimizer", ToggleServiceCoverageOptimizerAction));
 
             if (s != null)
             {
@@ -229,6 +234,10 @@ namespace UltraPerformanceMod.Systems
                 case "DisableOutsideTaxis": s.DisableOutsideTaxis = value; break;
                 case "DisableDummyTraffic": s.DisableDummyTraffic = value; break;
                 case "OptimizeParking": s.OptimizeParking = value; break;
+                case "ServiceCoverageOptimizer":
+                    s.ServiceCoverageOptimizer = value;
+                    ServiceCoverageOptimizerSystem.Instance?.SetEnabled(value);
+                    break;
             }
 
             s.ApplyAndSave();
@@ -320,6 +329,21 @@ namespace UltraPerformanceMod.Systems
             UpdateDiagnosticsBindings();
         }
 
+        private void ToggleServiceCoverageOptimizerAction(bool enabled)
+        {
+            var s = Mod.Settings;
+            if (s != null)
+            {
+                s.ServiceCoverageOptimizer = enabled;
+                s.ApplyAndSave();
+            }
+            ServiceCoverageOptimizerSystem.Instance?.SetEnabled(enabled);
+            m_ServiceCoverageOptimizerBinding.Update(enabled);
+            m_ServiceCoverageStatusBinding.Update(ServiceCoverageOptimizerSystem.StatusString);
+            SetStatusMessage($"[OK] Cobertura de Serviços Radix: {(enabled ? "Ativado (Fila O(1))" : "Desativado (Vanilla)")}");
+            UpdateDiagnosticsBindings();
+        }
+
         private void UpdateDiagnosticsBindings()
         {
             var core = UltraCoreEngine.Instance;
@@ -353,6 +377,9 @@ namespace UltraPerformanceMod.Systems
                 m_UveLodPercentBinding.Update(uve.CurrentLodFactor * 100f);
                 m_UveMaxLightsBinding.Update(uve.CurrentMaxLights);
             }
+
+            m_ServiceCoverageOptimizerBinding.Update(Mod.Settings?.ServiceCoverageOptimizer ?? true);
+            m_ServiceCoverageStatusBinding.Update(ServiceCoverageOptimizerSystem.StatusString);
         }
 
         public void ExecuteQuickAction(string actionKey)
@@ -472,6 +499,8 @@ namespace UltraPerformanceMod.Systems
             m_DynamicFarClipBinding.Update(s.DynamicFarClip);
             m_StrictMeshMemoryBinding.Update(s.StrictMeshMemory);
             m_AutoEvacuateHomelessBinding.Update(s.AutoEvacuateHomeless);
+            m_ServiceCoverageOptimizerBinding.Update(s.ServiceCoverageOptimizer);
+            m_ServiceCoverageStatusBinding.Update(ServiceCoverageOptimizerSystem.StatusString);
             m_AutoClearDeadlocksBinding.Update(s.AutoClearDeadlocks);
             m_HideNotificationIconsBinding.Update(s.HideNotificationIcons);
 

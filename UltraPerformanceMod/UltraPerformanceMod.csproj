@@ -83,9 +83,16 @@
       <HintPath>$(CSII_MANAGEDPATH)\Unity.RenderPipelines.HighDefinition.Runtime.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>Lib\0Harmony.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Lib\0Harmony.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\PublishConfiguration.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -113,6 +120,7 @@
     <MakeDir Directories="$(DeployDir)\images" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
     <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(DeployDir)" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    <Copy SourceFiles="Lib\0Harmony.dll" DestinationFolder="$(DeployDir)" Condition="Exists('Lib\0Harmony.dll')" />
     <Copy SourceFiles="UI\UltraPerformanceMod.mjs" DestinationFolder="$(DeployDir)" Condition="Exists('UI\UltraPerformanceMod.mjs')" />
     <Copy SourceFiles="UI\UltraPerformanceMod.css" DestinationFolder="$(DeployDir)" Condition="Exists('UI\UltraPerformanceMod.css')" />
     <Copy SourceFiles="UI\PerformanceIcon.svg" DestinationFolder="$(DeployDir)" Condition="Exists('UI\PerformanceIcon.svg')" />

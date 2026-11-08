@@ -66,6 +66,7 @@ namespace UltraPerformanceMod
         private bool m_AutoPostService = true;
         private bool m_InstantConstruction = false;
         private bool m_AutoEvacuateHomeless = true;
+        private bool m_ServiceCoverageOptimizer = true;
 
         // Traffic & Pathfinding
         private bool m_DisableOutsideTaxis = true;
@@ -396,6 +397,22 @@ namespace UltraPerformanceMod
                 {
                     m_AutoEvacuateHomeless = value;
                     m_Preset = PerformancePreset.Custom;
+                    ApplyAndSave();
+                }
+            }
+        }
+
+        [SettingsUISection(TabServices, GroupServices)]
+        public bool ServiceCoverageOptimizer
+        {
+            get => m_ServiceCoverageOptimizer;
+            set
+            {
+                if (m_ServiceCoverageOptimizer != value)
+                {
+                    m_ServiceCoverageOptimizer = value;
+                    m_Preset = PerformancePreset.Custom;
+                    ServiceCoverageOptimizerSystem.Instance?.SetEnabled(value);
                     ApplyAndSave();
                 }
             }
@@ -807,6 +824,7 @@ namespace UltraPerformanceMod
                     m_DisableTreeWind = false;
                     m_DisableTreeGrowth = false;
                     m_OptimizeShadows = false;
+                    m_ServiceCoverageOptimizer = true;
                     break;
 
                 case PerformancePreset.Medium:
@@ -835,6 +853,7 @@ namespace UltraPerformanceMod
                     m_DisableTreeWind = true;
                     m_DisableTreeGrowth = true;
                     m_OptimizeShadows = true;
+                    m_ServiceCoverageOptimizer = true;
                     break;
 
                 case PerformancePreset.Maximum:
@@ -863,6 +882,7 @@ namespace UltraPerformanceMod
                     m_DisableTreeWind = true;
                     m_DisableTreeGrowth = true;
                     m_OptimizeShadows = true;
+                    m_ServiceCoverageOptimizer = true;
                     break;
 
                 case PerformancePreset.Custom:
@@ -874,6 +894,7 @@ namespace UltraPerformanceMod
             HoverOverlayOptimizerSystem.Instance?.SetOutlinesPassEnabled(!m_DisableHoverOverlay);
             TreeLodOptimizerSystem.Instance?.ApplyLodMode(m_TreeLodMode);
             UltraVisibilityEngineSystem.Instance?.ApplyVisibilityMode(m_UltraVisibilityMode, m_DynamicFarClip, m_StrictMeshMemory);
+            ServiceCoverageOptimizerSystem.Instance?.SetEnabled(m_ServiceCoverageOptimizer);
         }
 
         public override void SetDefaults()

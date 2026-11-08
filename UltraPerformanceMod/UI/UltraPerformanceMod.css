@@ -521,6 +521,18 @@
     box-shadow: 0 2rem 6rem rgba(255, 143, 0, 0.4);
 }
 
+.upm-badge-active {
+    background: #10b981;
+    color: #ffffff;
+    font-size: 10rem;
+    font-weight: 800;
+    padding: 2rem 6rem;
+    border-radius: 4rem;
+    letter-spacing: 0.5rem;
+    text-transform: uppercase;
+    box-shadow: 0 2rem 6rem rgba(16, 185, 129, 0.4);
+}
+
 .upm-experimental-desc {
     font-size: 12rem;
     line-height: 16rem;

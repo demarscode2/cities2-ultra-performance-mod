@@ -99,6 +99,8 @@ namespace UltraPerformanceMod.Localization
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.InstantConstruction)), "Conclui construções e upgrades de nível instantaneamente, sem guindastes ou andaimes demorados." },
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Evacuação Automática de Sem-Teto" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.AutoEvacuateHomeless)), "Resolve o infame travamento de CPU do CS2: despacha periodicamente famílias sem-teto que entram em loops infinitos de busca de abrigo." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ServiceCoverageOptimizer)), "Otimizador Radix de Cobertura de Serviços (Anti-Stutter)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ServiceCoverageOptimizer)), "Substitui o algoritmo ineficiente de deslocamento linear do jogo (ApplyCoverageJob) por uma fila de prioridade monótona byte-radix O(1). Elimina o congelamento rítmico da CPU (70-100ms a cada 4.4s) em cidades com centenas de parques, clínicas, delegacias e correios." },
 
                 // Trânsito
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DisableOutsideTaxis)), "Bloquear Táxis Externos" },
